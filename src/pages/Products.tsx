@@ -178,7 +178,7 @@ export default function Products() {
   return (
     <div
       className="fixed inset-0 overflow-hidden"
-      style={{ background: `linear-gradient(135deg, ${p.bg[0]}, ${p.bg[1]})` }}
+      style={{ background: `linear-gradient(to bottom, #060008 0%, ${p.bg[0]} 45%, ${p.color}55 100%)` }}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >

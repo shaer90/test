@@ -142,6 +142,20 @@ export default function Navbar() {
 
   const handleLogout = () => { logout(); navigate('/'); };
 
+  const isHome = location.pathname === '/';
+
+  const navBg = scrolled
+    ? isHome
+      ? 'rgba(255,242,250,0.88)'
+      : 'rgba(20,10,26,0.88)'
+    : 'transparent';
+
+  const linkColor = (active: boolean) => {
+    if (active) return 'text-pink-500';
+    if (isHome && scrolled) return 'text-gray-700 hover:text-gray-900';
+    return 'text-gray-300 hover:text-white';
+  };
+
   const links = [
     { to: '/', label: 'الرئيسية' },
     { to: '/products', label: 'المنتجات' },
@@ -155,20 +169,25 @@ export default function Navbar() {
         initial={{ y: -80 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
-        className={`fixed top-0 right-0 left-0 z-50 transition-all duration-300 ${
-          scrolled ? 'bg-black/80 backdrop-blur-xl border-b border-white/10' : 'bg-transparent'
-        }`}
+        className="fixed top-0 right-0 left-0 z-50 transition-all duration-300"
+        style={{
+          background: navBg,
+          backdropFilter: scrolled ? 'blur(18px)' : 'none',
+          borderBottom: scrolled ? '1px solid rgba(196,113,139,.2)' : 'none',
+          boxShadow: scrolled ? '0 2px 24px rgba(196,113,139,.12)' : 'none',
+        }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
 
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2">
-              <motion.div whileHover={{ scale: 1.05 }} className="text-2xl font-black tracking-tight">
-                <span className="text-gradient-pink">all</span>
-                <span className="text-white">sence</span>
-                <span className="text-xs text-pink-400 mr-1">®</span>
-              </motion.div>
+            <Link to="/" className="flex items-center">
+              <motion.img
+                src="/logo.png"
+                alt="Allsence"
+                whileHover={{ scale: 1.05 }}
+                style={{ height: 48, width: 'auto', objectFit: 'contain' }}
+              />
             </Link>
 
             {/* Desktop Links */}
@@ -177,9 +196,7 @@ export default function Navbar() {
                 <Link
                   key={l.to}
                   to={l.to}
-                  className={`text-sm font-semibold transition-colors ${
-                    location.pathname === l.to ? 'text-pink-400' : 'text-gray-300 hover:text-white'
-                  }`}
+                  className={`text-sm font-semibold transition-colors ${linkColor(location.pathname === l.to)}`}
                 >
                   {l.label}
                 </Link>
@@ -190,7 +207,7 @@ export default function Navbar() {
             <div className="hidden md:flex items-center gap-3">
 
               {/* Cart icon */}
-              <Link to="/cart" className="relative p-2 text-gray-300 hover:text-white transition-colors">
+              <Link to="/cart" className={`relative p-2 transition-colors ${isHome && scrolled ? 'text-gray-600 hover:text-gray-900' : 'text-gray-300 hover:text-white'}`}>
                 <FiShoppingCart size={20} />
                 <AnimatePresence>
                   {totalItems > 0 && (
@@ -285,7 +302,7 @@ export default function Navbar() {
                 </div>
               ) : (
                 <>
-                  <Link to="/login" className="text-sm font-semibold text-gray-300 hover:text-white transition-colors">
+                  <Link to="/login" className={`text-sm font-semibold transition-colors ${isHome && scrolled ? 'text-gray-700 hover:text-gray-900' : 'text-gray-300 hover:text-white'}`}>
                     تسجيل الدخول
                   </Link>
                   <Link to="/register" className="btn-primary text-sm py-2 px-5">

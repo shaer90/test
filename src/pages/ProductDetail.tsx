@@ -95,7 +95,7 @@ export default function ProductDetail() {
   };
 
   return (
-    <div className="min-h-screen pt-16 pb-10" style={{ background: `linear-gradient(135deg, ${product.bg[0]}, ${product.bg[1]})` }}>
+    <div className="min-h-screen pt-16 pb-10" style={{ background: `linear-gradient(to bottom, #060008 0%, ${product.bg[0]} 45%, ${product.color}55 100%)` }}>
 
       {/* Blobs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">

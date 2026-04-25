@@ -1,387 +1,451 @@
-import { useRef } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useInView } from 'framer-motion';
-import { FiShield, FiDroplet, FiStar, FiUsers, FiArrowLeft, FiCheck } from 'react-icons/fi';
+import { FiShield, FiDroplet, FiStar, FiUsers } from 'react-icons/fi';
+import { productsAPI } from '../services/api';
+import { Product } from '../data/products';
 
-// ─── Product Data ────────────────────────────────────────────────────────────
-const products = [
-  {
-    id: 1,
-    name: 'Daily Pads',
-    nameAr: 'فوط يومية',
-    desc: 'حماية يومية ناعمة — 60 فوطة يومية برائحة الصابون',
-    count: '60',
-    color: '#E91E8C',
-    bg: 'from-pink-900/60 to-pink-950/80',
-    border: 'border-pink-500/30',
-    glow: 'rgba(233,30,140,0.3)',
-    badge: 'الأكثر مبيعاً',
-  },
-  {
-    id: 2,
-    name: 'Ultra Night',
-    nameAr: 'فوط ليلية ألترا',
-    desc: 'حماية ليلية فائقة — تقنية Liquid Lock GEL اليابانية المتقدمة',
-    count: '7',
-    color: '#1565C0',
-    bg: 'from-blue-900/60 to-blue-950/80',
-    border: 'border-blue-500/30',
-    glow: 'rgba(21,101,192,0.3)',
-    badge: '100% قطن',
-  },
-  {
-    id: 3,
-    name: 'Plus',
-    nameAr: 'فوط بلس',
-    desc: 'حماية متطورة طوال اليوم — تقنية Liquid Lock GEL اليابانية',
-    count: '8',
-    color: '#6A1B9A',
-    bg: 'from-purple-900/60 to-purple-950/80',
-    border: 'border-purple-500/30',
-    glow: 'rgba(106,27,154,0.3)',
-    badge: 'Extra Large',
-  },
-  {
-    id: 4,
-    name: 'Premium XXL',
-    nameAr: 'بريميوم XXL',
-    desc: 'مخصصة للنساء اللواتي يعانين من PCOS والحساسية والبشرة الحساسة',
-    count: '7',
-    color: '#E65100',
-    bg: 'from-orange-900/60 to-orange-950/80',
-    border: 'border-orange-500/30',
-    glow: 'rgba(230,81,0,0.3)',
-    badge: '100 طبقة تنفس',
-  },
-  {
-    id: 5,
-    name: 'Premium Pants',
-    nameAr: 'بنطلون بريميوم',
-    desc: 'راحة قصوى وثقة كاملة — تصميم انسيابي يشبه الملابس الداخلية',
-    count: '3',
-    color: '#AD1457',
-    bg: 'from-rose-900/60 to-rose-950/80',
-    border: 'border-rose-500/30',
-    glow: 'rgba(173,20,87,0.3)',
-    badge: 'Super Comfort',
-  },
-];
+const ROSE    = '#c4718b';
+const ROSE_DK = '#9e4d68';
+const MAUVE   = '#a888c4';
+const PLUM    = '#2c1a2e';
+const MID     = '#7a5c6e';
+const LT      = '#f5eef2';
 
-const features = [
-  { icon: FiShield, title: 'حماية 360°', desc: 'تغطية كاملة من كل الاتجاهات طوال اليوم' },
-  { icon: FiDroplet, title: 'Liquid Lock GEL', desc: 'تقنية يابانية متقدمة تحبس السوائل فوراً' },
-  { icon: FiStar, title: '100% قطن', desc: 'مصنوعة من أجود أنواع القطن الطبيعي' },
-  { icon: FiUsers, title: 'نظام الأعضاء', desc: 'انضمي واكسبي عمولة من كل عملية بيع' },
-];
-
-const stats = [
-  { value: '+50,000', label: 'عميلة راضية' },
-  { value: '5', label: 'منتجات متميزة' },
-  { value: '360°', label: 'حماية ضامنة' },
-  { value: '100%', label: 'قطن طبيعي' },
-];
-
-// ─── Animations ──────────────────────────────────────────────────────────────
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
+
 const fadeUp = {
-  hidden: { opacity: 0, y: 40 },
-  visible: (i = 0) => ({
-    opacity: 1, y: 0,
-    transition: { duration: 0.6, delay: i * 0.1, ease: EASE }
-  }),
+  hidden:  { opacity: 0, y: 22 },
+  visible: (i = 0) => ({ opacity: 1, y: 0, transition: { duration: 0.55, delay: i * 0.09, ease: EASE } }),
 };
 
-function Section({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+type CSSProps = React.CSSProperties;
+
+function Sec({ children, style }: { children: React.ReactNode; style?: CSSProps }) {
   const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: '-80px' });
+  const inView = useInView(ref, { once: true, margin: '-50px' });
   return (
-    <motion.section
-      ref={ref}
-      initial="hidden"
-      animate={inView ? 'visible' : 'hidden'}
-      className={className}
-    >
+    <motion.section ref={ref} initial="hidden" animate={inView ? 'visible' : 'hidden'} style={style}>
       {children}
     </motion.section>
   );
 }
 
-// ─── Product Card ─────────────────────────────────────────────────────────────
-function ProductCard({ p, i }: { p: typeof products[0]; i: number }) {
+function SecHead({ title, sub }: { title: string; sub: string }) {
   return (
-    <motion.div
-      variants={fadeUp}
-      custom={i}
-      className={`relative card-3d rounded-3xl p-6 bg-gradient-to-b ${p.bg} border ${p.border} overflow-hidden group cursor-pointer`}
-      style={{ boxShadow: `0 8px 40px ${p.glow}` }}
-    >
-      {/* Badge */}
-      <div
-        className="absolute top-4 right-4 text-xs font-bold px-3 py-1 rounded-full text-white"
-        style={{ backgroundColor: p.color }}
-      >
-        {p.badge}
-      </div>
-
-      {/* Count */}
-      <div className="text-6xl font-black text-white/10 mb-1 leading-none select-none">
-        {p.count}
-      </div>
-
-      {/* Name */}
-      <div className="mb-2">
-        <div className="text-xs text-gray-400 uppercase tracking-widest">allsence</div>
-        <h3 className="text-xl font-black text-white">{p.name}</h3>
-        <div className="text-sm font-semibold" style={{ color: p.color }}>{p.nameAr}</div>
-      </div>
-
-      {/* Desc */}
-      <p className="text-gray-400 text-sm leading-relaxed mt-3 mb-5">{p.desc}</p>
-
-      {/* CTA */}
-      <Link
-        to="/products"
-        className="flex items-center gap-2 text-sm font-bold transition-all group-hover:gap-3"
-        style={{ color: p.color }}
-      >
-        اطلبي الآن <FiArrowLeft />
-      </Link>
-
-      {/* Glow orb */}
-      <div
-        className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full opacity-20 blur-3xl transition-opacity group-hover:opacity-40"
-        style={{ backgroundColor: p.color }}
-      />
+    <motion.div variants={fadeUp} style={{ textAlign: 'center', marginBottom: 56 }}>
+      <h2 style={{ fontSize: 'clamp(26px,3.8vw,40px)', fontWeight: 900, color: PLUM, margin: 0 }}>{title}</h2>
+      <p style={{ fontSize: 15, color: MID, marginTop: 8, lineHeight: 1.65 }}>{sub}</p>
+      <div style={{ width: 48, height: 3, background: ROSE, borderRadius: 2, margin: '14px auto 0' }} />
     </motion.div>
   );
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
-export default function Home() {
+const CARD: Record<string, { desc: string }> = {
+  'daily-pads':    { desc: '48 قطعة يومية فاعلة — Ultra Thin للتعايش دون ألم.' },
+  'ultra-night':   { desc: 'نومي بثقة كاملة — Liquid Lock GEL وجانبان واقيان.' },
+  'plus':          { desc: 'للأيام الصعبة — Extra Large مع امتصاص مضاعف.' },
+  'premium-xxl':   { desc: 'مخصصة للبشرة الحساسة وPCOS — 4 أجنحة XXL.' },
+  'premium-pants': { desc: 'حرية حركة كاملة — Super Comfort Pearl Surface.' },
+};
+
+const CARD_THEME: Record<string, { bg: [string,string]; color: string }> = {
+  'daily-pads':    { bg: ['#2a0f1e','#180810'], color: '#e87898' },
+  'ultra-night':   { bg: ['#0d1a3d','#060d24'], color: '#7090d8' },
+  'plus':          { bg: ['#1a0d3a','#0d0620'], color: '#a870d8' },
+  'premium-xxl':   { bg: ['#2a1500','#180d00'], color: '#e09848' },
+  'premium-pants': { bg: ['#2a0d18','#180608'], color: '#d87090' },
+};
+
+function ProductCard({ p, i }: { p: Product; i: number }) {
+  const theme = CARD_THEME[p.id] ?? CARD_THEME['daily-pads'];
+  const badge = (p as any).badge || '';
+  const count = String((p as any).count || '');
+  const desc  = CARD[p.id]?.desc || '';
+
   return (
-    <div className="pt-16">
+    <motion.div
+      variants={fadeUp}
+      custom={i}
+      className="card-3d"
+      style={{
+        borderRadius: 24, overflow: 'hidden', cursor: 'pointer', position: 'relative',
+        background: `linear-gradient(160deg, ${theme.bg[0]} 0%, ${theme.bg[1]} 100%)`,
+        border: `1px solid ${theme.color}25`,
+        boxShadow: `0 8px 40px ${theme.color}20`,
+        display: 'flex', flexDirection: 'column', padding: 24,
+      } as CSSProps}
+    >
+      {/* Badge */}
+      {badge && (
+        <div style={{
+          position: 'absolute', top: 16, right: 16,
+          fontSize: 11, fontWeight: 800, padding: '4px 12px', borderRadius: 50,
+          color: '#fff', background: theme.color,
+        }}>{badge}</div>
+      )}
 
-      {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 overflow-hidden">
-        {/* Background blobs */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-pink-600/20 rounded-full blur-[120px] animate-pulse" />
-          <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-purple-600/15 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-pink-900/10 rounded-full blur-[150px]" />
-        </div>
+      {/* Large count watermark */}
+      <div style={{
+        fontSize: 72, fontWeight: 900, color: 'rgba(255,255,255,.07)',
+        lineHeight: 1, marginBottom: 4, userSelect: 'none',
+      } as CSSProps}>{count}</div>
 
-        {/* Floating dots decoration */}
-        {[...Array(6)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-1.5 h-1.5 bg-pink-400/40 rounded-full animate-float"
-            style={{
-              top: `${20 + i * 12}%`,
-              left: `${5 + i * 15}%`,
-              animationDelay: `${i * 0.5}s`,
-            }}
-          />
+      {/* Name */}
+      <div style={{ marginBottom: 8 }}>
+        <div style={{ fontSize: 11, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 2 }}>allsence</div>
+        <div style={{ fontSize: 20, fontWeight: 900, color: '#fff' }}>{p.name}</div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: theme.color, marginTop: 2 }}>{p.nameAr}</div>
+      </div>
+
+      {/* Description */}
+      <p style={{ fontSize: 13, color: '#9ca3af', lineHeight: 1.65, marginBottom: 20, flex: 1 }}>{desc}</p>
+
+      {/* CTA */}
+      <Link to="/products" style={{
+        display: 'inline-flex', alignItems: 'center', gap: 6,
+        fontSize: 14, fontWeight: 800, color: theme.color, textDecoration: 'none',
+      }}>اطلبي الآن ←</Link>
+
+      {/* Glow orb */}
+      <div style={{
+        position: 'absolute', bottom: -40, left: -40,
+        width: 160, height: 160, borderRadius: '50%',
+        background: theme.color, opacity: .15, filter: 'blur(40px)',
+        pointerEvents: 'none',
+      }}/>
+    </motion.div>
+  );
+}
+
+// ── Main ──────────────────────────────────────────────────────────────────────
+export default function Home() {
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    productsAPI.getAll()
+      .then(res => {
+        const list: Product[] = (res.data as { products?: Product[] })?.products || [];
+        setProducts(list);
+      })
+      .catch(() => {});
+  }, []);
+
+  return (
+    <div style={{ background: '#fdf8f5', color: PLUM }}>
+
+      <style>{`
+        @keyframes petalFall {
+          0%   { transform: translateY(-20px) rotate(0deg) translateX(0px); opacity: 1; }
+          25%  { transform: translateY(25vh)  rotate(130deg) translateX(18px); }
+          50%  { transform: translateY(50vh)  rotate(260deg) translateX(-12px); }
+          75%  { transform: translateY(75vh)  rotate(400deg) translateX(16px); }
+          100% { transform: translateY(105vh) rotate(540deg) translateX(-8px); opacity: 0; }
+        }
+        @keyframes shimmerText {
+          0%   { background-position: 200% center; }
+          100% { background-position: -200% center; }
+        }
+        @keyframes float {
+          0%,100% { transform: translateY(0px); }
+          50%     { transform: translateY(-15px); }
+        }
+        @keyframes pulse-glow {
+          0%,100% { box-shadow: 0 0 20px rgba(196,113,139,0.3); }
+          50%     { box-shadow: 0 0 40px rgba(196,113,139,0.7); }
+        }
+        .hero-float   { animation: float 5s ease-in-out infinite; }
+        .animate-float { animation: float 4s ease-in-out infinite; }
+        .animate-pulse-glow { animation: pulse-glow 2.5s ease-in-out infinite; }
+        .shimmer {
+          background: linear-gradient(90deg,#9e4d68,#a888c4,#c4718b,#9e4d68);
+          background-size: 200% auto;
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          background-clip: text; animation: shimmerText 3.5s linear infinite;
+        }
+        .card-3d {
+          transform-style: preserve-3d;
+          transition: transform 0.6s cubic-bezier(0.23,1,0.32,1), box-shadow 0.3s;
+        }
+        .card-3d:hover {
+          transform: perspective(1000px) rotateY(-6deg) rotateX(3deg) scale(1.03);
+        }
+        @media (max-width: 900px) {
+          .hero-grid  { grid-template-columns: 1fr !important; }
+          .hero-vis   { display: none !important; }
+          .hiw-grid   { grid-template-columns: 1fr !important; }
+          .hiw-photo  { display: none !important; }
+          .prods-grid { grid-template-columns: repeat(2,1fr) !important; }
+          .mlm-grid   { grid-template-columns: 1fr !important; }
+          .mlm-photo  { display: none !important; }
+          .testi-grid { grid-template-columns: repeat(2,1fr) !important; }
+        }
+        @media (max-width: 580px) {
+          .prods-grid { grid-template-columns: repeat(2,1fr) !important; }
+          .testi-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+
+      {/* ── HERO ──────────────────────────────────────────────────────── */}
+      <section style={{
+        position: 'relative', overflow: 'hidden',
+        background: 'linear-gradient(130deg,#c4b4e8 0%,#d4c0f0 25%,#e4ccec 55%,#f0d8e8 80%,#fae4f0 100%)',
+        minHeight: 520,
+      }}>
+        <div style={{ position:'absolute', width:600, height:500, borderRadius:'50%', filter:'blur(110px)', background:'rgba(160,120,210,.28)', top:'-20%', left:'-8%', pointerEvents:'none' }} />
+        <div style={{ position:'absolute', width:500, height:400, borderRadius:'50%', filter:'blur(100px)', background:'rgba(240,170,195,.22)', bottom:'-10%', right:'-5%', pointerEvents:'none' }} />
+        <div style={{ position:'absolute', top:0, left:0, right:0, height:80, background:'linear-gradient(to bottom,rgba(60,30,70,.32),transparent)', pointerEvents:'none', zIndex:2 }} />
+
+        {/* Petals */}
+        {[
+          { left:'5%',  dur:8,   delay:0,   w:16, h:24, color:'rgba(220,120,155,.7)', rx:'60% 30% 60% 30%', rot:-25 },
+          { left:'15%', dur:11,  delay:1.8, w:11, h:17, color:'rgba(196,100,130,.6)', rx:'50% 40% 50% 40%', rot:18  },
+          { left:'28%', dur:9,   delay:0.6, w:18, h:27, color:'rgba(240,150,170,.75)',rx:'55% 35% 55% 35%', rot:-40 },
+          { left:'44%', dur:12,  delay:2.4, w:13, h:20, color:'rgba(200,140,210,.65)',rx:'45% 55% 45% 55%', rot:30  },
+          { left:'58%', dur:8.5, delay:0.3, w:15, h:22, color:'rgba(220,120,155,.65)',rx:'60% 30% 60% 30%', rot:-18 },
+          { left:'72%', dur:10,  delay:1.5, w:10, h:15, color:'rgba(196,100,130,.55)',rx:'50% 40% 50% 40%', rot:42  },
+          { left:'86%', dur:13,  delay:1.0, w:20, h:30, color:'rgba(240,150,170,.7)', rx:'55% 35% 55% 35%', rot:-32 },
+        ].map((p, i) => (
+          <div key={i} style={{
+            position:'absolute', top:'-30px', left:p.left, zIndex:4,
+            width:p.w, height:p.h, background:p.color, borderRadius:p.rx,
+            transform:`rotate(${p.rot}deg)`, pointerEvents:'none',
+            animationName:'petalFall', animationDuration:`${p.dur}s`,
+            animationDelay:`${p.delay}s`, animationTimingFunction:'linear',
+            animationIterationCount:'infinite',
+          } as CSSProps} />
         ))}
 
-        <motion.div
-          initial={{ opacity: 0, y: 60 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: EASE }}
-          className="relative z-10 max-w-4xl mx-auto"
-        >
-          {/* Tag */}
+        {/* Cloud wave at bottom */}
+        <div style={{ position:'absolute', bottom:-2, left:0, right:0, pointerEvents:'none', zIndex:2 }}>
+          <svg viewBox="0 0 1440 160" preserveAspectRatio="none" style={{ width:'100%', height:160, display:'block' }}>
+            <path d="M0,140 Q120,80 240,120 Q360,160 480,110 Q600,60 720,110 Q840,160 960,115 Q1080,70 1200,115 Q1320,160 1440,120 L1440,160 L0,160 Z" fill="rgba(255,255,255,0.9)"/>
+            <path d="M0,155 Q180,110 360,145 Q540,180 720,140 Q900,100 1080,140 Q1260,180 1440,150 L1440,160 L0,160 Z" fill="white"/>
+          </svg>
+        </div>
+
+        {/* Centered content */}
+        <div style={{
+          maxWidth: 700, margin:'0 auto', padding:'100px 32px 180px',
+          display:'flex', flexDirection:'column', alignItems:'center',
+          textAlign:'center', position:'relative', zIndex:3,
+        }}>
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
-            className="inline-flex items-center gap-2 glass-card px-4 py-2 rounded-full text-sm text-pink-300 mb-8"
+            initial={{ opacity:0, y:28 }}
+            animate={{ opacity:1, y:0 }}
+            transition={{ duration:0.7, ease:EASE }}
           >
-            <span className="w-2 h-2 bg-pink-400 rounded-full animate-pulse" />
-            منتجات العناية النسائية المتميزة
-          </motion.div>
+            <h1 style={{
+              fontSize:'clamp(40px,5.2vw,66px)', fontWeight:900,
+              lineHeight:1.15, marginBottom:18, color:PLUM,
+              whiteSpace:'nowrap',
+            }}>
+              راحتك... <span className="shimmer">ودخلك كمان</span>
+            </h1>
 
-          {/* Headline */}
-          <h1 className="text-5xl md:text-7xl font-black leading-tight mb-6">
-            <span className="text-white">راحتك</span>
-            <br />
-            <span className="text-gradient-pink">مش رفاهية</span>
-          </h1>
+            <p style={{ fontSize:16, color:MID, lineHeight:1.85, marginBottom:32, maxWidth:520 }}>
+              اكتشفي منتجات Allsence — تقنية Liquid Lock GEL اليابانية المتقدمة، 100% قطن طبيعي، حماية 360° تمنحك ثقة بلا حدود.
+            </p>
 
-          <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
-            اكتشفي منتجات Allsence — تقنية Liquid Lock GEL اليابانية المتقدمة،
-            100% قطن طبيعي، حماية 360° تمنحك ثقة بلا حدود.
-          </p>
+            <div style={{ display:'flex', gap:14, flexWrap:'wrap', alignItems:'center', justifyContent:'center', marginBottom:28 }}>
+              <Link to="/products" style={{
+                display:'inline-flex', alignItems:'center', gap:8,
+                background:`linear-gradient(135deg,${ROSE},${ROSE_DK})`,
+                color:'#fff', borderRadius:50, padding:'14px 34px',
+                fontSize:15, fontWeight:800, textDecoration:'none',
+                boxShadow:`0 8px 28px rgba(196,113,139,.45)`,
+              }}>تسوقي الآن</Link>
+              <Link to="/register?type=member" style={{
+                display:'inline-flex', alignItems:'center', gap:8,
+                background:'rgba(255,255,255,.25)', color:PLUM,
+                border:`2px solid ${ROSE}`,
+                borderRadius:50, padding:'12px 28px', fontSize:14,
+                fontWeight:700, textDecoration:'none', backdropFilter:'blur(10px)',
+              }}>انضمي كعضوة واكسبي</Link>
+            </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/products" className="btn-primary text-base py-4 px-8">
-              تسوقي الآن
-            </Link>
-            <Link to="/register?type=member" className="btn-outline text-base py-4 px-8">
-              انضمي كعضوة واكسبي
-            </Link>
-          </div>
+            <div style={{ display:'flex', gap:20, flexWrap:'wrap', justifyContent:'center', marginBottom:36 }}>
+              {['شحن سريع','100% قطن طبيعي','ضمان الجودة','دفع آمن'].map(b => (
+                <div key={b} style={{ display:'flex', alignItems:'center', gap:5, fontSize:13, color:MID }}>
+                  <span style={{ color:ROSE, fontWeight:900 }}>✓</span>{b}
+                </div>
+              ))}
+            </div>
 
-          {/* Trust badges */}
-          <div className="flex flex-wrap justify-center gap-6 mt-12 text-sm text-gray-500">
-            {['شحن سريع', '100% قطن طبيعي', 'ضمان الجودة', 'دفع آمن'].map((b) => (
-              <div key={b} className="flex items-center gap-1.5">
-                <FiCheck className="text-pink-400" size={14} />
-                {b}
-              </div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Scroll indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.2 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-gray-600"
-        >
-          <span className="text-xs">اسكرولي لأسفل</span>
-          <div className="w-5 h-8 border-2 border-gray-700 rounded-full flex justify-center pt-1.5">
             <motion.div
-              animate={{ y: [0, 10, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              className="w-1.5 h-1.5 bg-pink-400 rounded-full"
-            />
-          </div>
-        </motion.div>
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.2 }}
+              style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:6, opacity:.6 }}
+            >
+              <span style={{ fontSize:12, color:MID }}>اسكرولي لأسفل</span>
+              <div style={{
+                width:20, height:32, borderRadius:10,
+                border:`2px solid ${ROSE}`, display:'flex', justifyContent:'center', paddingTop:5,
+              }}>
+                <motion.div
+                  animate={{ y: [0, 10, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                  style={{ width:6, height:6, borderRadius:'50%', background:ROSE }}
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        </div>
       </section>
 
-      {/* ── Stats ─────────────────────────────────────────────────────────── */}
-      <Section className="py-16 border-y border-white/5">
-        <div className="max-w-5xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-8">
-          {stats.map((s, i) => (
-            <motion.div
-              key={i}
-              variants={fadeUp}
-              custom={i}
-              className="text-center"
-            >
-              <div className="text-3xl md:text-4xl font-black text-gradient-pink mb-1">{s.value}</div>
-              <div className="text-sm text-gray-400">{s.label}</div>
-            </motion.div>
-          ))}
-        </div>
-      </Section>
-
-      {/* ── Products ──────────────────────────────────────────────────────── */}
-      <Section className="py-20 px-4">
-        <div className="max-w-7xl mx-auto">
-          <motion.div variants={fadeUp} className="text-center mb-12">
-            <h2 className="section-title">منتجاتنا</h2>
-            <p className="section-subtitle">اختاري المنتج المناسب لاحتياجاتك</p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
-            {products.map((p, i) => (
-              <ProductCard key={p.id} p={p} i={i} />
-            ))}
-          </div>
-
-          <motion.div variants={fadeUp} custom={6} className="text-center mt-10">
-            <Link to="/products" className="btn-primary inline-flex">
-              تصفح جميع المنتجات
-            </Link>
-          </motion.div>
-        </div>
-      </Section>
-
-      {/* ── Features ──────────────────────────────────────────────────────── */}
-      <Section className="py-20 px-4 bg-gradient-to-b from-transparent via-pink-950/10 to-transparent">
-        <div className="max-w-6xl mx-auto">
-          <motion.div variants={fadeUp} className="text-center mb-12">
-            <h2 className="section-title">لماذا Allsence؟</h2>
-            <p className="section-subtitle">تقنية متقدمة وراحة حقيقية</p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {features.map((f, i) => (
-              <motion.div
-                key={i}
-                variants={fadeUp}
-                custom={i}
-                className="glass-card rounded-2xl p-6 text-center group hover:border-pink-500/40 transition-all"
-              >
-                <div className="w-14 h-14 rounded-2xl bg-pink-500/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-pink-500/20 transition-all">
-                  <f.icon className="text-pink-400 text-2xl" />
+      {/* ── HOW IT WORKS ──────────────────────────────────────────────── */}
+      <Sec style={{ padding: '88px 24px', background: '#fff' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+          <SecHead title="كيف تشتغل الفكرة؟ 🌸" sub="اشتري منتجات Allsence وشاركيها مع صديقاتك وحصلي على دخل ثاني حقيقي" />
+          <div className="hiw-grid" style={{ display: 'grid', gridTemplateColumns: '1.1fr 2fr', gap: 56, alignItems: 'center' }}>
+            <motion.div className="hiw-photo" variants={fadeUp} style={{ position: 'relative' }}>
+              <img
+                src="https://images.unsplash.com/photo-1554151228-14d9def656e4?w=400&h=550&fit=crop&crop=top"
+                alt="كيف تشتغل"
+                style={{ width: '100%', borderRadius: 28, objectFit: 'cover',
+                  aspectRatio: '3/4' as unknown as number,
+                  boxShadow: '0 20px 60px rgba(196,113,139,.2)' }}
+              />
+              <div style={{
+                position: 'absolute', bottom: 24, right: 24, background: 'white',
+                borderRadius: 16, padding: '12px 16px',
+                boxShadow: '0 8px 24px rgba(0,0,0,.12)',
+                display: 'flex', alignItems: 'center', gap: 10,
+              }}>
+                <span style={{ fontSize: 22 }}>💰</span>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 900, color: PLUM }}>دخل شهري</div>
+                  <div style={{ fontSize: 11, color: MID }}>من 5 مستويات</div>
                 </div>
-                <h3 className="text-white font-bold mb-2">{f.title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">{f.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </Section>
-
-      {/* ── MLM CTA ───────────────────────────────────────────────────────── */}
-      <Section className="py-20 px-4">
-        <div className="max-w-4xl mx-auto">
-          <motion.div
-            variants={fadeUp}
-            className="relative glass-card rounded-3xl p-10 text-center overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-gradient-to-l from-pink-900/30 to-purple-900/20 pointer-events-none" />
-            <div className="relative z-10">
-              <div className="text-4xl mb-4">💜</div>
-              <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
-                انضمي كعضوة واكسبي
-              </h2>
-              <p className="text-gray-300 text-lg mb-3 leading-relaxed">
-                احصلي على كود إحالة خاص بك وابدئي بكسب عمولة من كل عملية بيع تتم عبر فريقك
-                المكون من <span className="text-pink-400 font-bold">5 مستويات</span>.
-              </p>
-              <div className="flex flex-wrap justify-center gap-4 mb-8 text-sm">
-                {['كود إحالة خاص', 'عمولة من 5 مستويات', 'لوحة تحكم كاملة', 'دفع شهري'].map((f) => (
-                  <div key={f} className="flex items-center gap-1.5 text-gray-300">
-                    <FiCheck className="text-pink-400" />
-                    {f}
-                  </div>
-                ))}
               </div>
-              <Link to="/register?type=member" className="btn-primary text-base py-4 px-10">
-                ابدئي رحلتك الآن
-              </Link>
+            </motion.div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {[
+                { n: 1, t: 'سجلي',             d: 'سجلي حسابك مجاناً في أقل من دقيقة وأصبحي عضوة في مجتمع Allsence — بدون رسوم، بدون تعقيد.', c: `linear-gradient(135deg,${ROSE_DK},${ROSE})` },
+                { n: 2, t: 'ادعوي صديقاتك',   d: 'شاركي كود الدعوة الخاص بكِ مع صديقاتك وعائلتك — كل شخص تدعينه يُضاف لشبكتك ويزيد دخلك.', c: `linear-gradient(135deg,${MAUVE},#7a50a8)` },
+                { n: 3, t: 'اشتري واربحي',    d: 'اشتري المنتجات واستمتعي بها، وفي نفس الوقت احصلي على عمولة من كل عملية شراء تتم عبر شبكتك من 5 مستويات.', c: 'linear-gradient(135deg,#5ab8b0,#3d8e88)' },
+              ].map((s, i) => (
+                <motion.div key={i} variants={fadeUp} custom={i + 1} style={{
+                  display: 'flex', alignItems: 'flex-start', gap: 20,
+                  background: LT, border: '1px solid rgba(196,113,139,.12)',
+                  borderRadius: 20, padding: 24,
+                }}>
+                  <div className="animate-pulse-glow" style={{
+                    width: 52, height: 52, borderRadius: 16, flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 22, fontWeight: 900, color: '#fff', background: s.c,
+                  }}>{s.n}</div>
+                  <div>
+                    <div style={{ fontSize: 17, fontWeight: 900, color: PLUM, marginBottom: 5 }}>{s.t}</div>
+                    <div style={{ fontSize: 13, color: MID, lineHeight: 1.65 }}>{s.d}</div>
+                  </div>
+                </motion.div>
+              ))}
             </div>
-          </motion.div>
+          </div>
         </div>
-      </Section>
+      </Sec>
 
-      {/* ── How It Works ──────────────────────────────────────────────────── */}
-      <Section className="py-20 px-4">
-        <div className="max-w-5xl mx-auto">
-          <motion.div variants={fadeUp} className="text-center mb-12">
-            <h2 className="section-title">كيف يعمل نظام الأعضاء؟</h2>
-            <p className="section-subtitle">3 خطوات بسيطة للبدء</p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-            {/* Connector line */}
-            <div className="hidden md:block absolute top-12 right-1/6 left-1/6 h-0.5 bg-gradient-to-l from-purple-500/30 via-pink-500/50 to-purple-500/30" />
-
-            {[
-              { step: '١', title: 'سجلي كعضوة', desc: 'أنشئي حسابك واختاري نوع العضوية' },
-              { step: '٢', title: 'احصلي على كودك', desc: 'ستحصلين على كود إحالة خاص بك فوراً' },
-              { step: '٣', title: 'اكسبي عمولتك', desc: 'شاركي كودك واكسبي من كل مبيعات فريقك' },
-            ].map((s, i) => (
+      {/* ── WHY ALLSENCE ──────────────────────────────────────────────── */}
+      <Sec style={{ padding: '88px 24px', background: `linear-gradient(180deg,#fff 0%,${LT} 100%)` }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+          <SecHead title="لماذا Allsence؟" sub="تقنية متقدمة وراحة حقيقية" />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 22 }}>
+            {([
+              { icon: FiShield,  title: 'حماية 360°',      desc: 'تغطية كاملة من كل الاتجاهات طوال اليوم' },
+              { icon: FiDroplet, title: 'Liquid Lock GEL',  desc: 'تقنية يابانية متقدمة تحبس السوائل فوراً' },
+              { icon: FiStar,    title: '100% قطن',          desc: 'مصنوعة من أجود أنواع القطن الطبيعي' },
+              { icon: FiUsers,   title: 'نظام الأعضاء',     desc: 'انضمي واكسبي عمولة من كل عملية بيع' },
+            ] as { icon: React.ElementType; title: string; desc: string }[]).map((f, i) => (
               <motion.div
                 key={i}
                 variants={fadeUp}
                 custom={i}
-                className="relative flex flex-col items-center text-center"
+                whileHover={{ y: -6, boxShadow: `0 16px 48px rgba(196,113,139,.18)` }}
+                style={{
+                  borderRadius: 24, padding: 28, textAlign: 'center',
+                  background: '#fff',
+                  border: '1px solid rgba(196,113,139,.12)',
+                  boxShadow: '0 4px 20px rgba(196,113,139,.08)',
+                  transition: 'box-shadow .3s, transform .3s',
+                } as CSSProps}
               >
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-pink-600 to-pink-800 flex items-center justify-center text-3xl font-black text-white mb-4 animate-pulse-glow z-10">
-                  {s.step}
+                <div style={{
+                  width: 56, height: 56, borderRadius: 18,
+                  background: `linear-gradient(135deg,${ROSE_DK}18,${ROSE}25)`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  margin: '0 auto 16px',
+                }}>
+                  <f.icon size={24} color={ROSE} />
                 </div>
-                <h3 className="text-white font-bold text-lg mb-2">{s.title}</h3>
-                <p className="text-gray-400 text-sm">{s.desc}</p>
+                <div style={{ fontSize: 16, fontWeight: 900, color: PLUM, marginBottom: 8 }}>{f.title}</div>
+                <div style={{ fontSize: 13, color: MID, lineHeight: 1.65 }}>{f.desc}</div>
               </motion.div>
             ))}
           </div>
         </div>
-      </Section>
+      </Sec>
+
+      {/* ── PRODUCTS ──────────────────────────────────────────────────── */}
+      <Sec style={{ padding: '88px 24px', background: 'linear-gradient(180deg,#fdf8f5 0%,#f5eef8 100%)' }}>
+        <div style={{ maxWidth: 1160, margin: '0 auto' }}>
+          <SecHead title="اختاري راحتك ✨" sub="كل منتج مصمم لاحتياج مختلف — ابحثي عن منتجك المثالي" />
+          <div className="prods-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 22 }}>
+            {products.slice(0, 4).map((p, i) => <ProductCard key={p.id} p={p} i={i} />)}
+          </div>
+          <motion.div variants={fadeUp} custom={5} style={{ textAlign: 'center', marginTop: 44 }}>
+            <Link to="/products" style={{
+              display: 'inline-flex', alignItems: 'center',
+              background: `linear-gradient(135deg,${ROSE_DK},${ROSE})`,
+              color: '#fff', borderRadius: 50, padding: '14px 32px',
+              fontSize: 15, fontWeight: 700, textDecoration: 'none',
+              boxShadow: '0 6px 24px rgba(196,113,139,.4)',
+            }}>تصفح جميع المنتجات</Link>
+          </motion.div>
+        </div>
+      </Sec>
+
+      {/* ── MLM CTA ───────────────────────────────────────────────────── */}
+      <Sec style={{ padding: '88px 24px', background: LT }}>
+        <motion.div variants={fadeUp} className="mlm-grid" style={{
+          maxWidth: 1100, margin: '0 auto', borderRadius: 36, overflow: 'hidden',
+          display: 'grid', gridTemplateColumns: '1.2fr 1fr',
+        }}>
+          <div style={{ background: `linear-gradient(135deg,${ROSE_DK},${MAUVE})`, padding: '64px 48px', color: 'white' }}>
+            <h2 style={{ fontSize: 36, fontWeight: 900, margin: '0 0 14px' }}>انضمي كعضوة<br />واكسبي 💜</h2>
+            <p style={{ fontSize: 16, opacity: .9, lineHeight: 1.78, marginBottom: 28 }}>
+              احصلي على كود إحالة خاص بك وابدئي بكسب عمولة من كل عملية بيع
+              تتم عبر شبكتك من <strong>5 مستويات متتالية</strong>. هذا دخل حقيقي مستمر.
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 36 }}>
+              {['كود إحالة خاص','عمولة 5 مستويات','لوحة تحكم','دفع شهري'].map(f => (
+                <div key={f} style={{
+                  background: 'rgba(255,255,255,.18)', border: '1px solid rgba(255,255,255,.3)',
+                  borderRadius: 50, padding: '7px 16px', fontSize: 13, fontWeight: 700,
+                  color: 'white', display: 'flex', alignItems: 'center', gap: 6,
+                }}>✓ {f}</div>
+              ))}
+            </div>
+            <Link to="/register?type=member" style={{
+              display: 'inline-flex', alignItems: 'center',
+              background: '#fff', color: ROSE_DK, borderRadius: 50,
+              padding: '11px 26px', fontSize: 14, fontWeight: 700, textDecoration: 'none',
+              boxShadow: '0 4px 16px rgba(0,0,0,.1)',
+            }}>ابدئي رحلتك الآن ✨</Link>
+          </div>
+          <div className="mlm-photo" style={{ position: 'relative', overflow: 'hidden', minHeight: 400 }}>
+            <img
+              src="https://images.unsplash.com/photo-1627163439134-7a8c47e08208?w=600&h=500&fit=crop&crop=top"
+              alt="انضمي"
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+            <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to right,rgba(158,77,104,.3),transparent)` }} />
+          </div>
+        </motion.div>
+      </Sec>
+
 
     </div>
   );

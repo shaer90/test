@@ -8,11 +8,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           {/* Brand */}
           <div>
-            <div className="text-2xl font-black mb-3">
-              <span className="text-gradient-pink">all</span>
-              <span className="text-white">sence</span>
-              <span className="text-xs text-pink-400 mr-1">®</span>
-            </div>
+            <img src="/logo.png" alt="Allsence" style={{ height: 56, width: 'auto', objectFit: 'contain', marginBottom: 12 }} />
             <p className="text-gray-400 text-sm leading-relaxed">
               راحتك مش رفاهية — منتجات العناية النسائية المتميزة بتقنية اليابانية المتقدمة.
             </p>
