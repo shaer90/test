@@ -22,12 +22,10 @@ app.use('/api/verifications', require('./routes/verifications'));
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
-// Serve React frontend in production (must come after API routes)
-if (isProd) {
-  const distPath = path.join(__dirname, '..', 'dist');
-  app.use(express.static(distPath));
-  app.get('*', (_req, res) => res.sendFile(path.join(distPath, 'index.html')));
-}
+// Serve React frontend (whenever dist/ exists)
+const distPath = path.join(__dirname, '..', 'dist');
+app.use(express.static(distPath));
+app.get('*', (_req, res) => res.sendFile(path.join(distPath, 'index.html')));
 
 initDB().then(() => {
   app.listen(PORT, () => {
