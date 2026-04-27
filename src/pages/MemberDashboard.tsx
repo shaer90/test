@@ -24,11 +24,11 @@ interface EarningsSummary {
 }
 
 const LEVEL_COLORS = [
-  { bg: 'from-pink-900/60 to-pink-950', border: 'border-pink-500/30', text: 'text-pink-400', glow: 'rgba(233,30,140,0.2)' },
-  { bg: 'from-purple-900/60 to-purple-950', border: 'border-purple-500/30', text: 'text-purple-400', glow: 'rgba(106,27,154,0.2)' },
-  { bg: 'from-blue-900/60 to-blue-950', border: 'border-blue-500/30', text: 'text-blue-400', glow: 'rgba(21,101,192,0.2)' },
-  { bg: 'from-teal-900/60 to-teal-950', border: 'border-teal-500/30', text: 'text-teal-400', glow: 'rgba(0,150,136,0.2)' },
-  { bg: 'from-orange-900/60 to-orange-950', border: 'border-orange-500/30', text: 'text-orange-400', glow: 'rgba(230,81,0,0.2)' },
+  { bg: 'from-pink-50 to-rose-100', border: 'border-pink-200', text: 'text-pink-600', glow: 'rgba(196,113,139,0.15)' },
+  { bg: 'from-purple-50 to-violet-100', border: 'border-purple-200', text: 'text-purple-600', glow: 'rgba(147,51,234,0.1)' },
+  { bg: 'from-blue-50 to-sky-100', border: 'border-blue-200', text: 'text-blue-600', glow: 'rgba(59,130,246,0.1)' },
+  { bg: 'from-teal-50 to-emerald-100', border: 'border-teal-200', text: 'text-teal-600', glow: 'rgba(20,184,166,0.1)' },
+  { bg: 'from-orange-50 to-amber-100', border: 'border-orange-200', text: 'text-orange-600', glow: 'rgba(249,115,22,0.1)' },
 ];
 
 const fadeUp = {
@@ -180,14 +180,14 @@ export default function MemberDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-24 flex items-center justify-center">
+      <div className="light-page min-h-screen pt-24 flex items-center justify-center" style={{ background: '#fdf8f5' }}>
         <div className="w-10 h-10 border-4 border-pink-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-16 px-4">
+    <div className="light-page min-h-screen pt-20 pb-16 px-4" style={{ background: '#fdf8f5', color: '#2c1a2e' }}>
       <div className="max-w-6xl mx-auto">
 
         {/* Header */}

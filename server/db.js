@@ -71,7 +71,8 @@ async function initDB() {
     password_hash TEXT NOT NULL, subscriber_code TEXT UNIQUE, sponsor_code TEXT,
     available_commission REAL DEFAULT 0, total_commission REAL DEFAULT 0,
     country TEXT, city TEXT, is_verified INTEGER DEFAULT 0,
-    verification_status TEXT DEFAULT 'none', created_at TEXT NOT NULL
+    verification_status TEXT DEFAULT 'none', created_at TEXT NOT NULL,
+    date_of_birth TEXT, reminder_enabled INTEGER DEFAULT 0, last_period_date TEXT
   );
   CREATE TABLE IF NOT EXISTS products (
     id TEXT PRIMARY KEY, name TEXT NOT NULL, name_ar TEXT NOT NULL,
@@ -106,7 +107,7 @@ async function initDB() {
   CREATE TABLE IF NOT EXISTS verifications (
     id TEXT PRIMARY KEY, user_id TEXT NOT NULL UNIQUE,
     user_name TEXT, user_code TEXT, id_type TEXT, id_number TEXT,
-    full_name TEXT, date_of_birth TEXT, id_image TEXT,
+    full_name TEXT, date_of_birth TEXT, phone TEXT, id_image TEXT,
     status TEXT DEFAULT 'pending', submitted_at TEXT NOT NULL, rejection_reason TEXT
   );
   CREATE TABLE IF NOT EXISTS commission_rates (
@@ -121,6 +122,12 @@ async function initDB() {
     UNIQUE(user_id, product_id)
   );
   `);
+
+  // ── Migrations for existing DBs ───────────────────────────────────────────
+  try { db.exec('ALTER TABLE users ADD COLUMN date_of_birth TEXT'); } catch(_) {}
+  try { db.exec('ALTER TABLE users ADD COLUMN reminder_enabled INTEGER DEFAULT 0'); } catch(_) {}
+  try { db.exec('ALTER TABLE users ADD COLUMN last_period_date TEXT'); } catch(_) {}
+  try { db.exec('ALTER TABLE verifications ADD COLUMN phone TEXT'); } catch(_) {}
 
   // ── Seeds ──────────────────────────────────────────────────────────────────
   if (!db.prepare('SELECT id FROM commission_rates WHERE id = 1').get()) {
@@ -164,6 +171,9 @@ mod.formatUser = function formatUser(u) {
     availableCommission: u.available_commission || 0, totalCommission: u.total_commission || 0,
     country: u.country || undefined, city: u.city || undefined,
     isVerified: u.is_verified === 1, verificationStatus: u.verification_status || 'none',
+    ageGroup: u.date_of_birth || undefined,
+    reminderEnabled: u.reminder_enabled === 1,
+    lastPeriodDate: u.last_period_date || undefined,
   };
 };
 

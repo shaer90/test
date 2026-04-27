@@ -159,7 +159,7 @@ router.delete('/products/:id', (req, res) => {
 
 router.get('/verifications', (req, res) => {
   const rows = dbMod.db.prepare('SELECT * FROM verifications ORDER BY submitted_at DESC').all();
-  res.json({ verifications: rows.map((v) => ({ id:v.id, userId:v.user_id, userName:v.user_name, userCode:v.user_code, idType:v.id_type, idNumber:v.id_number, fullName:v.full_name, dateOfBirth:v.date_of_birth, idImage:v.id_image, status:v.status, submittedAt:v.submitted_at, rejectionReason:v.rejection_reason })) });
+  res.json({ verifications: rows.map((v) => ({ id:v.id, userId:v.user_id, userName:v.user_name, userCode:v.user_code, idType:v.id_type, idNumber:v.id_number, fullName:v.full_name, dateOfBirth:v.date_of_birth, phone:v.phone||null, idImage:v.id_image, status:v.status, submittedAt:v.submitted_at, rejectionReason:v.rejection_reason })) });
 });
 
 router.put('/verifications/:id/approve', (req, res) => {

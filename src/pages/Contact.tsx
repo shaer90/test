@@ -68,7 +68,7 @@ export default function Contact() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   return (
-    <div className="min-h-screen pt-20 pb-20" dir="rtl">
+    <div className="light-page min-h-screen pt-20 pb-20" dir="rtl" style={{ background: '#fdf8f5', color: '#2c1a2e' }}>
 
       {/* ── Hero ── */}
       <section className="relative px-4 pt-10 pb-14 overflow-hidden">

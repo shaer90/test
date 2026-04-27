@@ -24,7 +24,7 @@ interface Member {
   role: string; subscriberCode?: string; createdAt: string;
   availableCommission?: number; totalCommission?: number;
   isVerified?: boolean; verificationStatus?: string;
-  country?: string; city?: string;
+  country?: string; city?: string; ageGroup?: string;
 }
 
 interface Order {
@@ -43,7 +43,7 @@ interface Stats {
 
 interface Verification {
   id: string; userId: string; userName: string; userCode?: string;
-  idType: string; idNumber: string; fullName: string; dateOfBirth: string;
+  idType: string; idNumber: string; fullName: string; dateOfBirth: string; phone?: string;
   idImage?: string; status: 'pending' | 'approved' | 'rejected';
   submittedAt: string; rejectionReason?: string;
 }
@@ -849,12 +849,14 @@ export default function AdminDashboard() {
   const fetchAll = async () => {
     setLoading(true);
     try {
-      const [statsRes, ratesRes] = await Promise.allSettled([
+      const [statsRes, ratesRes, membersRes] = await Promise.allSettled([
         adminAPI.getStats(),
         adminAPI.getCommissionRates(),
+        adminAPI.getMembers(),
       ]);
       if (statsRes.status === 'fulfilled') setStats(statsRes.value.data);
       if (ratesRes.status === 'fulfilled') setRates(ratesRes.value.data?.rates || rates);
+      if (membersRes.status === 'fulfilled') setMembers((membersRes.value.data?.members || []) as Member[]);
     } finally {
       setLoading(false);
     }
@@ -974,14 +976,14 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-24 flex items-center justify-center">
+      <div className="light-page min-h-screen pt-24 flex items-center justify-center" style={{ background: '#fdf8f5' }}>
         <div className="w-10 h-10 border-4 border-pink-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-16 px-4">
+    <div className="light-page min-h-screen pt-20 pb-16 px-4" style={{ background: '#fdf8f5', color: '#2c1a2e' }}>
       <div className="max-w-7xl mx-auto">
 
         {/* Header */}
@@ -1024,25 +1026,75 @@ export default function AdminDashboard() {
 
         {/* ── Stats ──────────────────────────────────────────────────────────── */}
         {activeTab === 'stats' && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              { icon: FiUsers, label: 'الأعضاء', value: stats?.totalMembers || 0, color: 'text-pink-400', bg: 'border-pink-500/20' },
-              { icon: FiUsers, label: 'الزبائن', value: stats?.totalCustomers || 0, color: 'text-purple-400', bg: 'border-purple-500/20' },
-              { icon: FiPackage, label: 'الطلبات', value: stats?.totalOrders || 0, color: 'text-blue-400', bg: 'border-blue-500/20' },
-              { icon: FiDollarSign, label: 'الإيرادات', value: `₪${(stats?.totalRevenue || 0).toFixed(0)}`, color: 'text-green-400', bg: 'border-green-500/20' },
-            ].map((s, i) => (
-              <motion.div
-                key={s.label}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.08 }}
-                className={`glass-card rounded-2xl p-5 border ${s.bg}`}
-              >
-                <s.icon className={`${s.color} mb-3`} size={20} />
-                <div className={`text-2xl font-black ${s.color} mb-1`}>{s.value}</div>
-                <div className="text-xs text-gray-400">{s.label}</div>
-              </motion.div>
-            ))}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+            {/* Main stats */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { icon: FiUsers, label: 'الأعضاء', value: stats?.totalMembers || 0, color: 'text-pink-400', bg: 'border-pink-500/20' },
+                { icon: FiUsers, label: 'الزبائن', value: stats?.totalCustomers || 0, color: 'text-purple-400', bg: 'border-purple-500/20' },
+                { icon: FiPackage, label: 'الطلبات', value: stats?.totalOrders || 0, color: 'text-blue-400', bg: 'border-blue-500/20' },
+                { icon: FiDollarSign, label: 'الإيرادات', value: `₪${(stats?.totalRevenue || 0).toFixed(0)}`, color: 'text-green-400', bg: 'border-green-500/20' },
+              ].map((s, i) => (
+                <motion.div
+                  key={s.label}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.08 }}
+                  className={`glass-card rounded-2xl p-5 border ${s.bg}`}
+                >
+                  <s.icon className={`${s.color} mb-3`} size={20} />
+                  <div className={`text-2xl font-black ${s.color} mb-1`}>{s.value}</div>
+                  <div className="text-xs text-gray-400">{s.label}</div>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Age group stats */}
+            {(() => {
+              const AGE_GROUPS = ['15-20', '21-30', '31-40', '41-50', '51+'];
+              const AGE_COLORS = [
+                { text: 'text-pink-400', border: 'border-pink-500/20', bar: '#E91E8C' },
+                { text: 'text-purple-400', border: 'border-purple-500/20', bar: '#9C27B0' },
+                { text: 'text-blue-400', border: 'border-blue-500/20', bar: '#2196F3' },
+                { text: 'text-teal-400', border: 'border-teal-500/20', bar: '#009688' },
+                { text: 'text-orange-400', border: 'border-orange-500/20', bar: '#FF6D00' },
+              ];
+              const counts = AGE_GROUPS.map((g) =>
+                members.filter((m) => m.ageGroup === g).length
+              );
+              const maxCount = Math.max(...counts, 1);
+              return (
+                <div className="glass-card rounded-2xl p-5 border border-white/10">
+                  <div className="text-sm font-bold text-white mb-4">توزيع الفئات العمرية</div>
+                  <div className="grid grid-cols-5 gap-3">
+                    {AGE_GROUPS.map((g, i) => (
+                      <motion.div
+                        key={g}
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.07 }}
+                        className={`glass-card rounded-xl p-4 border ${AGE_COLORS[i].border} text-center`}
+                      >
+                        <div className={`text-2xl font-black ${AGE_COLORS[i].text} mb-1`}>{counts[i]}</div>
+                        <div className="text-xs text-gray-400 mb-2">{g}</div>
+                        <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${(counts[i] / maxCount) * 100}%` }}
+                            transition={{ delay: i * 0.07 + 0.2, duration: 0.5 }}
+                            className="h-full rounded-full"
+                            style={{ backgroundColor: AGE_COLORS[i].bar }}
+                          />
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                  <div className="mt-3 text-xs text-gray-500">
+                    إجمالي المسجلين مع فئة عمرية: {counts.reduce((a, b) => a + b, 0)} من {members.length}
+                  </div>
+                </div>
+              );
+            })()}
           </motion.div>
         )}
 
@@ -1159,6 +1211,7 @@ export default function AdminDashboard() {
                           <div><span className="text-gray-500">نوع الهوية:</span> <span className="text-gray-200">{ver.idType === 'national_id' ? 'هوية وطنية' : ver.idType === 'passport' ? 'جواز سفر' : 'بطاقة'}</span></div>
                           <div><span className="text-gray-500">رقم الهوية:</span> <span className="text-gray-200 font-mono">{ver.idNumber}</span></div>
                           <div><span className="text-gray-500">تاريخ الميلاد:</span> <span className="text-gray-200">{ver.dateOfBirth}</span></div>
+                          {ver.phone && <div><span className="text-gray-500">الهاتف:</span> <span className="text-gray-200 font-mono" dir="ltr">{ver.phone}</span></div>}
                           <div><span className="text-gray-500">تاريخ الطلب:</span> <span className="text-gray-200">{new Date(ver.submittedAt).toLocaleDateString('ar-EG')}</span></div>
                         </div>
                       </div>

@@ -4,7 +4,7 @@ const { authMiddleware } = require('../middleware/auth');
 
 // POST /api/verifications
 router.post('/', authMiddleware, (req, res) => {
-  const { idType, idNumber, fullName, dateOfBirth, idImage } = req.body || {};
+  const { idType, idNumber, fullName, dateOfBirth, phone, idImage } = req.body || {};
   const userId = req.user.userId;
   const db = dbMod.db;
 
@@ -16,11 +16,11 @@ router.post('/', authMiddleware, (req, res) => {
 
   const now = new Date().toISOString();
   if (existing) {
-    db.prepare(`UPDATE verifications SET id_type=?,id_number=?,full_name=?,date_of_birth=?,id_image=?,status='pending',submitted_at=?,rejection_reason=NULL WHERE user_id=?`)
-      .run(idType, idNumber, fullName, dateOfBirth, idImage||null, now, userId);
+    db.prepare(`UPDATE verifications SET id_type=?,id_number=?,full_name=?,date_of_birth=?,phone=?,id_image=?,status='pending',submitted_at=?,rejection_reason=NULL WHERE user_id=?`)
+      .run(idType, idNumber, fullName, dateOfBirth, phone||null, idImage||null, now, userId);
   } else {
-    db.prepare(`INSERT INTO verifications (id,user_id,user_name,user_code,id_type,id_number,full_name,date_of_birth,id_image,status,submitted_at) VALUES (?,?,?,?,?,?,?,?,?,'pending',?)`)
-      .run(`ver-${Date.now()}`, userId, user.name, user.subscriber_code||null, idType, idNumber, fullName, dateOfBirth, idImage||null, now);
+    db.prepare(`INSERT INTO verifications (id,user_id,user_name,user_code,id_type,id_number,full_name,date_of_birth,phone,id_image,status,submitted_at) VALUES (?,?,?,?,?,?,?,?,?,?,'pending',?)`)
+      .run(`ver-${Date.now()}`, userId, user.name, user.subscriber_code||null, idType, idNumber, fullName, dateOfBirth, phone||null, idImage||null, now);
   }
   db.prepare("UPDATE users SET verification_status='pending' WHERE id=?").run(userId);
   res.json({ success: true });

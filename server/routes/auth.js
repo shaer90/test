@@ -87,7 +87,7 @@ router.post('/login', (req, res) => {
 
 // POST /api/auth/register
 router.post('/register', (req, res) => {
-  const { username, name, phone, password, role, sponsorCode, country, city } = req.body || {};
+  const { username, name, phone, password, role, sponsorCode, country, city, ageGroup, reminderEnabled, lastPeriodDate } = req.body || {};
   if (!username || !name || !phone || !password || !role)
     return res.status(400).json({ message: 'يرجى إدخال جميع الحقول المطلوبة' });
 
@@ -113,8 +113,8 @@ router.post('/register', (req, res) => {
 
   const id = `user-${Date.now()}`;
   const createdAt = new Date().toISOString();
-  db.prepare(`INSERT INTO users (id,username,name,phone,role,password_hash,subscriber_code,sponsor_code,country,city,is_verified,verification_status,available_commission,total_commission,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,0,'none',0,0,?)`)
-    .run(id, username.toLowerCase().trim(), name.trim(), phone.trim(), role, bcrypt.hashSync(password, 10), subscriberCode, sponsorCode ? sponsorCode.trim().toUpperCase() : null, country ? country.trim() : null, city ? city.trim() : null, createdAt);
+  db.prepare(`INSERT INTO users (id,username,name,phone,role,password_hash,subscriber_code,sponsor_code,country,city,is_verified,verification_status,available_commission,total_commission,created_at,date_of_birth,reminder_enabled,last_period_date) VALUES (?,?,?,?,?,?,?,?,?,?,0,'none',0,0,?,?,?,?)`)
+    .run(id, username.toLowerCase().trim(), name.trim(), phone.trim(), role, bcrypt.hashSync(password, 10), subscriberCode, sponsorCode ? sponsorCode.trim().toUpperCase() : null, country ? country.trim() : null, city ? city.trim() : null, createdAt, ageGroup || null, reminderEnabled ? 1 : 0, (reminderEnabled && lastPeriodDate) ? lastPeriodDate : null);
 
   const newUser = db.prepare('SELECT * FROM users WHERE id = ?').get(id);
   const token = jwt.sign({ userId: newUser.id, username: newUser.username, role: newUser.role }, JWT_SECRET, { expiresIn: '30d' });
@@ -145,6 +145,25 @@ router.get('/check-referral/:code', (req, res) => {
 router.post('/logout', (_req, res) => {
   res.clearCookie('allsence_token', { httpOnly: true, sameSite: 'lax' });
   res.json({ success: true });
+});
+
+// PUT /api/auth/reminder  — update reminder settings
+router.put('/reminder', authMiddleware, (req, res) => {
+  const { reminderEnabled, lastPeriodDate } = req.body || {};
+  const db = dbMod.db;
+  db.prepare('UPDATE users SET reminder_enabled = ?, last_period_date = ? WHERE id = ?')
+    .run(reminderEnabled ? 1 : 0, (reminderEnabled && lastPeriodDate) ? lastPeriodDate : null, req.user.userId);
+  res.json({ success: true });
+});
+
+// GET /api/auth/reminder-check  — check if 28-day reminder is due
+router.get('/reminder-check', authMiddleware, (req, res) => {
+  const db = dbMod.db;
+  const user = db.prepare('SELECT reminder_enabled, last_period_date FROM users WHERE id = ?').get(req.user.userId);
+  if (!user || !user.reminder_enabled || !user.last_period_date)
+    return res.json({ due: false });
+  const daysDiff = Math.floor((Date.now() - new Date(user.last_period_date).getTime()) / 86400000);
+  res.json({ due: daysDiff >= 28, daysSince: daysDiff });
 });
 
 // POST /api/auth/change-password

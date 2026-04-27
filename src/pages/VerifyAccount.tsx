@@ -12,6 +12,7 @@ interface VerificationData {
   idNumber: string;
   fullName: string;
   dateOfBirth: string;
+  phone: string;
 }
 
 export default function VerifyAccount() {
@@ -23,6 +24,7 @@ export default function VerifyAccount() {
     idNumber: '',
     fullName: user?.name || '',
     dateOfBirth: '',
+    phone: user?.phone || '',
   });
   const [idImage, setIdImage] = useState<string | null>(null);
   const [idImageName, setIdImageName] = useState('');
@@ -61,6 +63,7 @@ export default function VerifyAccount() {
 
     if (!form.idNumber) return setError('يرجى إدخال رقم الهوية');
     if (!form.fullName) return setError('يرجى إدخال الاسم الكامل');
+    if (!form.phone) return setError('يرجى إدخال رقم الهاتف');
     if (!form.dateOfBirth) return setError('يرجى إدخال تاريخ الميلاد');
     if (!idImage) return setError('يرجى رفع صورة الهوية');
 
@@ -71,6 +74,7 @@ export default function VerifyAccount() {
         idNumber: form.idNumber,
         fullName: form.fullName,
         dateOfBirth: form.dateOfBirth,
+        phone: form.phone,
         idImage,
       });
       updateUser({ verificationStatus: 'pending', isVerified: false });
@@ -85,7 +89,7 @@ export default function VerifyAccount() {
 
   if (success) {
     return (
-      <div className="min-h-screen pt-24 flex items-center justify-center px-4">
+      <div className="light-page min-h-screen pt-24 flex items-center justify-center px-4" style={{ background: '#fdf8f5', color: '#2c1a2e' }}>
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -115,7 +119,7 @@ export default function VerifyAccount() {
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-16 px-4">
+    <div className="light-page min-h-screen pt-20 pb-16 px-4" style={{ background: '#fdf8f5', color: '#2c1a2e' }}>
       <div className="max-w-lg mx-auto">
 
         {/* Header */}
@@ -190,6 +194,19 @@ export default function VerifyAccount() {
               onChange={(e) => set('fullName', e.target.value)}
               className="input-field w-full"
               placeholder="الاسم الرباعي"
+            />
+          </div>
+
+          {/* Phone */}
+          <div>
+            <label className="text-xs text-gray-400 mb-1 block">رقم الهاتف</label>
+            <input
+              type="tel"
+              value={form.phone}
+              onChange={(e) => set('phone', e.target.value)}
+              className="input-field w-full font-mono"
+              placeholder="+970 5X XXX XXXX"
+              dir="ltr"
             />
           </div>
 

@@ -55,7 +55,7 @@ export default function MyOrders() {
 
   if (orders.length === 0) {
     return (
-      <div className="min-h-screen pt-24 flex flex-col items-center justify-center px-4 text-center">
+      <div className="light-page min-h-screen pt-24 flex flex-col items-center justify-center px-4 text-center" style={{ background: '#fdf8f5', color: '#2c1a2e' }}>
         <FiPackage size={48} className="text-gray-600 mb-4" />
         <h2 className="text-xl font-bold text-white mb-2">لا يوجد طلبات بعد</h2>
         <p className="text-gray-400 text-sm mb-6">ابدئي التسوق وستظهر طلباتك هنا</p>
@@ -67,7 +67,7 @@ export default function MyOrders() {
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-16 px-4">
+    <div className="light-page min-h-screen pt-20 pb-16 px-4" style={{ background: '#fdf8f5', color: '#2c1a2e' }}>
       <div className="max-w-2xl mx-auto">
         <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="pt-4 mb-6">
           <h1 className="text-2xl font-black text-white flex items-center gap-2">

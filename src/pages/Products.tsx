@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { Product } from '../data/products';
+import { Product, PRODUCTS } from '../data/products';
 import { productsAPI, adminAPI } from '../services/api';
 import { ProductIllustration } from '../components/ProductIllustration';
 import {
@@ -69,8 +69,8 @@ function Image3D({
         {canEdit && (
           <button
             onClick={onEdit}
-            className="absolute -top-4 -left-4 z-10 w-10 h-10 rounded-full flex items-center justify-center text-white shadow-xl transition-all hover:scale-110 active:scale-95"
-            style={{ backgroundColor: color, boxShadow: `0 4px 20px ${color}88` }}
+            className="absolute -top-4 -left-4 z-10 w-10 h-10 rounded-full flex items-center justify-center shadow-xl transition-all hover:scale-110 active:scale-95"
+            style={{ backgroundColor: color, boxShadow: `0 4px 20px ${color}88`, color: '#fff' }}
             title="تغيير الصورة"
           >
             <FiCamera size={15} />
@@ -94,12 +94,14 @@ export default function Products() {
   const navigate = useNavigate();
   const isAdmin = user?.role === 'super_admin' || user?.role === 'admin';
 
-  const [products, setProducts] = useState<DisplayProduct[]>([]);
+  const [products, setProducts] = useState<DisplayProduct[]>(
+    PRODUCTS.map((p) => ({ ...p, defaultImg: p.image || null }))
+  );
 
   useEffect(() => {
     productsAPI.getAll().then((res) => {
       const list: Product[] = (res.data as { products?: Product[] })?.products || [];
-      setProducts(list.map((p) => ({ ...p, defaultImg: p.image || null })));
+      if (list.length > 0) setProducts(list.map((p) => ({ ...p, defaultImg: p.image || null })));
     }).catch(() => {});
   }, []);
 
@@ -162,7 +164,7 @@ export default function Products() {
 
   if (!p) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center" style={{ background: '#0d001a' }}>
+      <div className="fixed inset-0 flex items-center justify-center" style={{ background: '#fdf8f5' }}>
         <div className="w-8 h-8 border-2 border-pink-500/30 border-t-pink-500 rounded-full animate-spin" />
       </div>
     );
@@ -177,8 +179,8 @@ export default function Products() {
 
   return (
     <div
-      className="fixed inset-0 overflow-hidden"
-      style={{ background: `linear-gradient(to bottom, #060008 0%, ${p.bg[0]} 45%, ${p.color}55 100%)` }}
+      className="light-page fixed inset-0 overflow-hidden"
+      style={{ background: '#fdf8f5' }}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
@@ -195,9 +197,9 @@ export default function Products() {
           transition={{ duration: 0.6 }}
           className="absolute inset-0 pointer-events-none"
         >
-          <div className="absolute top-1/4 right-1/4 w-[500px] h-[500px] rounded-full blur-[150px] opacity-20"
+          <div className="absolute top-1/4 right-1/4 w-[500px] h-[500px] rounded-full blur-[180px] opacity-[0.05]"
             style={{ backgroundColor: p.color }} />
-          <div className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] rounded-full blur-[150px] opacity-10"
+          <div className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] rounded-full blur-[180px] opacity-[0.03]"
             style={{ backgroundColor: p.color }} />
         </motion.div>
       </AnimatePresence>
@@ -239,23 +241,24 @@ export default function Products() {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.15 }}
-                    className="inline-block text-xs font-bold px-3 py-1 rounded-full text-white mb-4"
-                    style={{ backgroundColor: p.color }}
+                    className="inline-block text-xs font-bold px-3 py-1 rounded-full mb-4"
+                    style={{ backgroundColor: p.color, color: '#fff' }}
                   >
                     {p.badge}
                   </motion.div>
 
                   {/* Name */}
                   <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
-                    <div className="text-xs text-gray-400 uppercase tracking-widest mb-1">allsence</div>
-                    <h1 className="text-4xl md:text-5xl font-black text-white leading-tight">{p.name}</h1>
+                    <div className="text-xs uppercase tracking-widest mb-1" style={{ color: '#7a5c6e' }}>allsence</div>
+                    <h1 className="text-4xl md:text-5xl font-black leading-tight" style={{ color: '#2c1a2e' }}>{p.name}</h1>
                     <div className="text-xl font-bold mt-1" style={{ color: p.color }}>{p.nameAr}</div>
                   </motion.div>
 
                   {/* Desc */}
                   <motion.p
                     initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25 }}
-                    className="text-gray-300 mt-4 leading-relaxed text-sm md:text-base"
+                    className="mt-4 leading-relaxed text-sm md:text-base"
+                    style={{ color: '#6b4f5e' }}
                   >
                     {p.desc}
                   </motion.p>
@@ -266,7 +269,7 @@ export default function Products() {
                     className="mt-5 space-y-2"
                   >
                     {p.features.map((f) => (
-                      <li key={f} className="flex items-center gap-2 text-sm text-gray-200">
+                      <li key={f} className="flex items-center gap-2 text-sm" style={{ color: '#4a2f3e' }}>
                         <span className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
                           style={{ backgroundColor: `${p.color}33` }}>
                           <FiCheck size={11} style={{ color: p.color }} />
@@ -282,8 +285,8 @@ export default function Products() {
                     className="mt-7 space-y-3"
                   >
                     <div>
-                      <div className="text-3xl font-black text-white">₪{p.price}</div>
-                      <div className="text-xs text-gray-400">{p.count} قطعة في العبوة</div>
+                      <div className="text-3xl font-black" style={{ color: '#2c1a2e' }}>₪{p.price}</div>
+                      <div className="text-xs" style={{ color: '#7a5c6e' }}>{p.count} قطعة في العبوة</div>
                     </div>
                     <div className="flex gap-3 flex-wrap">
                       {/* Add to cart */}
@@ -292,8 +295,8 @@ export default function Products() {
                           if (!user) { navigate('/login', { state: { from: '/products' } }); return; }
                           addItem({ id: p.id, name: p.name, nameAr: p.nameAr, price: p.price, count: p.count, color: p.color });
                         }}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-2xl font-bold text-white text-sm transition-all hover:scale-105 active:scale-95"
-                        style={{ backgroundColor: p.color, boxShadow: `0 8px 30px ${p.color}55` }}
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-2xl font-bold text-sm transition-all hover:scale-105 active:scale-95"
+                        style={{ backgroundColor: p.color, boxShadow: `0 8px 30px ${p.color}55`, color: '#fff' }}
                       >
                         <FiShoppingCart size={15} />
                         أضف للسلة
@@ -301,7 +304,7 @@ export default function Products() {
                       {/* View details */}
                       <Link
                         to={`/product/${p.id}`}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-2xl font-bold text-sm glass-card hover:bg-white/10 transition-all"
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-2xl font-bold text-sm bg-white/70 border border-pink-200 hover:bg-white transition-all"
                         style={{ color: p.color }}
                       >
                         التفاصيل
@@ -329,7 +332,7 @@ export default function Products() {
                 style={{
                   width: i === current ? 28 : 8,
                   height: 8,
-                  backgroundColor: i === current ? p.color : 'rgba(255,255,255,0.2)',
+                  backgroundColor: i === current ? p.color : 'rgba(44,26,46,0.15)',
                 }}
               />
             ))}
@@ -337,21 +340,22 @@ export default function Products() {
 
           {/* Product name + counter */}
           <div className="text-center">
-            <div className="text-xs text-gray-500">{current + 1} / {total}</div>
+            <div className="text-xs" style={{ color: '#7a5c6e' }}>{current + 1} / {total}</div>
           </div>
 
           {/* Arrow navigation */}
           <div className="flex gap-2">
             <button
               onClick={() => goTo(-1)}
-              className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-gray-400 hover:text-white transition-all hover:scale-110"
+              className="w-10 h-10 rounded-full bg-white/70 border border-pink-200 flex items-center justify-center transition-all hover:scale-110"
+              style={{ color: '#7a5c6e' }}
             >
               <FiChevronUp size={18} />
             </button>
             <button
               onClick={() => goTo(1)}
-              className="w-10 h-10 rounded-full flex items-center justify-center text-white transition-all hover:scale-110"
-              style={{ backgroundColor: p.color }}
+              className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110"
+              style={{ backgroundColor: p.color, color: '#fff' }}
             >
               <FiChevronDown size={18} />
             </button>
@@ -363,7 +367,8 @@ export default function Products() {
           initial={{ opacity: 1 }}
           animate={{ opacity: 0 }}
           transition={{ delay: 3, duration: 1 }}
-          className="absolute bottom-20 left-1/2 -translate-x-1/2 text-xs text-gray-500 text-center pointer-events-none"
+          className="absolute bottom-20 left-1/2 -translate-x-1/2 text-xs text-center pointer-events-none"
+          style={{ color: '#9e7d8e' }}
         >
           <div>سكرولي للتنقل بين المنتجات</div>
           <div className="flex justify-center mt-1 gap-1">
@@ -376,7 +381,8 @@ export default function Products() {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="absolute top-20 left-1/2 -translate-x-1/2 flex items-center gap-2 glass-card px-4 py-2 rounded-full text-xs text-gray-300"
+            className="absolute top-20 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white/80 border border-pink-200 px-4 py-2 rounded-full text-xs"
+          style={{ color: '#6b4f5e' }}
           >
             <FiUpload size={12} className="text-pink-400" />
             اضغط على أيقونة الكاميرا لإضافة صورة المنتج

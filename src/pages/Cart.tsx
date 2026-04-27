@@ -8,7 +8,7 @@ export default function Cart() {
   const { items, totalItems, totalPrice, removeItem, updateQty, clearCart } = useCart();
 
   if (items.length === 0) return (
-    <div className="min-h-screen pt-24 flex flex-col items-center justify-center px-4 text-center">
+    <div className="light-page min-h-screen pt-24 flex flex-col items-center justify-center px-4 text-center" style={{ background: '#fdf8f5', color: '#2c1a2e' }}>
       <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}>
         <div className="w-24 h-24 rounded-full bg-pink-500/10 flex items-center justify-center mx-auto mb-6">
           <FiShoppingBag size={36} className="text-pink-400" />
@@ -24,7 +24,7 @@ export default function Cart() {
   );
 
   return (
-    <div className="min-h-screen pt-20 pb-16 px-4">
+    <div className="light-page min-h-screen pt-20 pb-16 px-4" style={{ background: '#fdf8f5', color: '#2c1a2e' }}>
       <div className="max-w-5xl mx-auto">
 
         {/* Header */}

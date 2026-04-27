@@ -82,7 +82,7 @@ export default function Checkout() {
 
   // Empty cart (but not on success step)
   if (items.length === 0 && step !== 3) return (
-    <div className="min-h-screen pt-24 flex flex-col items-center justify-center px-4 text-center">
+    <div className="light-page min-h-screen pt-24 flex flex-col items-center justify-center px-4 text-center" style={{ background: '#fdf8f5', color: '#2c1a2e' }}>
       <FiShoppingBag size={40} className="text-gray-600 mb-4" />
       <h2 className="text-xl font-bold text-white mb-2">السلة فارغة</h2>
       <Link to="/products" className="btn-primary mt-4">تسوقي الآن</Link>
@@ -96,7 +96,7 @@ export default function Checkout() {
   };
 
   return (
-    <div className="min-h-screen pt-20 pb-16 px-4">
+    <div className="light-page min-h-screen pt-20 pb-16 px-4" style={{ background: '#fdf8f5', color: '#2c1a2e' }}>
       <div className="max-w-5xl mx-auto">
 
         {/* Header */}

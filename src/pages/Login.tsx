@@ -30,7 +30,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen pt-16 flex items-center justify-center px-4 relative overflow-hidden">
+    <div className="light-page min-h-screen pt-16 flex items-center justify-center px-4 relative overflow-hidden" style={{ background: '#fdf8f5', color: '#2c1a2e' }}>
       {/* Blobs */}
       <div className="absolute top-1/3 right-1/4 w-80 h-80 bg-pink-600/15 rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute bottom-1/3 left-1/4 w-80 h-80 bg-purple-600/10 rounded-full blur-[100px] pointer-events-none" />

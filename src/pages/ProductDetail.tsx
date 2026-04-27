@@ -63,6 +63,7 @@ export default function ProductDetail() {
   );
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     if (!id) return;
     productsAPI.getOne(id).then((res) => {
       const p = (res.data as { product?: Product })?.product;
@@ -71,7 +72,7 @@ export default function ProductDetail() {
   }, [id]);
 
   if (!product) return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="light-page min-h-screen flex items-center justify-center" style={{ background: '#fdf8f5' }}>
       <div className="text-center">
         <p className="text-gray-400 mb-4">المنتج غير موجود</p>
         <Link to="/products" className="btn-primary">العودة للمنتجات</Link>
@@ -95,12 +96,12 @@ export default function ProductDetail() {
   };
 
   return (
-    <div className="min-h-screen pt-16 pb-10" style={{ background: `linear-gradient(to bottom, #060008 0%, ${product.bg[0]} 45%, ${product.color}55 100%)` }}>
+    <div className="light-page min-h-screen pt-16 pb-10" style={{ background: '#fdf8f5' }}>
 
       {/* Blobs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/4 right-1/3 w-96 h-96 rounded-full blur-[150px] opacity-15" style={{ backgroundColor: product.color }} />
-        <div className="absolute bottom-1/4 left-1/3 w-80 h-80 rounded-full blur-[150px] opacity-10" style={{ backgroundColor: product.color }} />
+        <div className="absolute top-1/4 right-1/3 w-96 h-96 rounded-full blur-[180px] opacity-[0.07]" style={{ backgroundColor: product.color }} />
+        <div className="absolute bottom-1/4 left-1/3 w-80 h-80 rounded-full blur-[180px] opacity-[0.04]" style={{ backgroundColor: product.color }} />
       </div>
 
       <div className="relative max-w-6xl mx-auto px-4 pt-8">

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { adminAPI } from '../services/api';
@@ -20,22 +20,27 @@ export default function AdminPayMember() {
   const [error, setError] = useState('');
   const amountRef = useRef<HTMLInputElement>(null);
 
-  const doSearch = async () => {
-    const q = query.trim().toLowerCase();
-    if (!q) return;
+  const doSearch = async (q: string) => {
+    const trimmed = q.trim().toLowerCase();
+    if (!trimmed) { setResults([]); setSearched(false); return; }
     const res = await adminAPI.getMembers();
     const all: StoredMember[] = res.data.members as StoredMember[];
     const found = all.filter(
       (m) =>
         (m.role === 'member' || m.role === 'admin' || m.role === 'super_admin') &&
-        (m.name.toLowerCase().includes(q) ||
-          m.username.toLowerCase().includes(q) ||
-          (m.subscriberCode || '').toLowerCase().includes(q))
+        (m.name.toLowerCase().includes(trimmed) ||
+          m.username.toLowerCase().includes(trimmed) ||
+          (m.subscriberCode || '').toLowerCase().includes(trimmed))
     );
     setResults(found);
     setSearched(true);
     setSelected(null);
   };
+
+  useEffect(() => {
+    const timer = setTimeout(() => doSearch(query), 300);
+    return () => clearTimeout(timer);
+  }, [query]);
 
   const selectMember = (m: StoredMember) => {
     setSelected(m);
@@ -68,7 +73,7 @@ export default function AdminPayMember() {
   };
 
   return (
-    <div className="min-h-screen pt-20 pb-16 px-4">
+    <div className="light-page min-h-screen pt-20 pb-16 px-4" style={{ background: '#fdf8f5', color: '#2c1a2e' }}>
       <div className="max-w-2xl mx-auto">
 
         {/* Header */}
@@ -114,25 +119,17 @@ export default function AdminPayMember() {
           className="glass-card rounded-3xl p-6 mb-5"
         >
           <label className="text-xs text-gray-400 mb-2 block">ابحث بالاسم أو اسم المستخدم أو كود الإحالة</label>
-          <div className="flex gap-3">
-            <div className="relative flex-1">
-              <FiSearch size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && doSearch()}
-                className="input-field w-full pr-9"
-                placeholder="مثال: سارة أو SR123456"
-                dir="auto"
-              />
-            </div>
-            <button
-              onClick={doSearch}
-              className="btn-primary px-5 py-2.5 flex items-center gap-2 flex-shrink-0"
-            >
-              <FiSearch size={15} /> بحث
-            </button>
+          <div className="relative">
+            <FiSearch size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="input-field w-full pr-9"
+              placeholder="مثال: سارة أو SR123456"
+              dir="auto"
+              autoFocus
+            />
           </div>
         </motion.div>
 

@@ -37,6 +37,9 @@ interface RegisterData {
   sponsorCode?: string;
   country?: string;
   city?: string;
+  ageGroup?: string;
+  reminderEnabled?: boolean;
+  lastPeriodDate?: string;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);

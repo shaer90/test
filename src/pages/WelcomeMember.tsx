@@ -34,7 +34,7 @@ export default function WelcomeMember() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-10 relative overflow-hidden">
+    <div className="light-page min-h-screen flex items-center justify-center px-4 py-10 relative overflow-hidden" style={{ background: '#fdf8f5', color: '#2c1a2e' }}>
 
       {/* Background blobs */}
       <div className="absolute inset-0 pointer-events-none">

@@ -18,7 +18,7 @@ export interface StoredMember {
   createdAt?: string; subscriberCode?: string; sponsorCode?: string;
   availableCommission?: number; totalCommission?: number;
   isVerified?: boolean; verificationStatus?: 'none' | 'pending' | 'approved' | 'rejected';
-  country?: string; city?: string;
+  country?: string; city?: string; ageGroup?: string;
 }
 
 export interface StoredVerification {
@@ -60,7 +60,14 @@ export const authAPI = {
   register: (data: {
     username: string; name: string; phone: string; password: string;
     role: 'customer' | 'member'; sponsorCode?: string; country?: string; city?: string;
+    ageGroup?: string; reminderEnabled?: boolean; lastPeriodDate?: string;
   }) => api.post<{ token: string; user: StoredMember }>('/auth/register', data),
+
+  updateReminder: (data: { reminderEnabled: boolean; lastPeriodDate?: string }) =>
+    api.put('/auth/reminder', data),
+
+  checkReminder: () =>
+    api.get<{ due: boolean; daysSince?: number }>('/auth/reminder-check'),
 
   logout: () => api.post('/auth/logout'),
 

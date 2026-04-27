@@ -47,14 +47,15 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="glass-card rounded-3xl p-6 w-full max-w-sm max-h-[90vh] overflow-y-auto"
+        className="rounded-3xl p-6 w-full max-w-sm max-h-[90vh] overflow-y-auto"
+        style={{ background: '#fff', border: '1px solid rgba(196,113,139,0.2)', boxShadow: '0 20px 60px rgba(196,113,139,0.15)' }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-5">
-          <h3 className="text-lg font-bold text-white flex items-center gap-2">
+          <h3 className="text-lg font-bold flex items-center gap-2" style={{ color: '#2c1a2e' }}>
             <FiLock size={17} className="text-pink-400" /> تغيير كلمة المرور
           </h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
+          <button onClick={onClose} className="transition-colors hover:text-pink-400" style={{ color: '#9e7d8e' }}>
             <FiX size={20} />
           </button>
         </div>
@@ -67,8 +68,8 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
               exit={{ opacity: 0 }}
               className={`mb-4 text-sm rounded-xl px-4 py-2.5 flex items-center gap-2 ${
                 msg.type === 'success'
-                  ? 'bg-green-400/10 text-green-400 border border-green-400/20'
-                  : 'bg-red-400/10 text-red-400 border border-red-400/20'
+                  ? 'bg-green-50 text-green-600 border border-green-200'
+                  : 'bg-red-50 text-red-500 border border-red-200'
               }`}
             >
               {msg.type === 'success' ? <FiCheck size={14} /> : <FiX size={14} />}
@@ -84,19 +85,24 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
             { key: 'confirm', label: 'تأكيد كلمة المرور' },
           ] as { key: keyof typeof form; label: string }[]).map((f) => (
             <div key={f.key}>
-              <label className="text-xs text-gray-400 mb-1 block">{f.label}</label>
+              <label className="text-xs mb-1 block" style={{ color: '#7a5c6e' }}>{f.label}</label>
               <div className="relative">
                 <input
                   type={show[f.key] ? 'text' : 'password'}
                   value={form[f.key]}
                   onChange={(e) => set(f.key, e.target.value)}
-                  className="input-field w-full pl-10"
+                  className="w-full rounded-xl px-4 py-3 pl-10 text-sm outline-none transition-all"
+                  style={{
+                    background: '#f5eef2', border: '1px solid rgba(196,113,139,0.25)',
+                    color: '#2c1a2e',
+                  }}
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => toggleShow(f.key)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 transition-colors hover:text-pink-400"
+                  style={{ color: '#9e7d8e' }}
                 >
                   {show[f.key] ? <FiEyeOff size={14} /> : <FiEye size={14} />}
                 </button>
@@ -145,15 +151,13 @@ export default function Navbar() {
   const isHome = location.pathname === '/';
 
   const navBg = scrolled
-    ? isHome
-      ? 'rgba(255,242,250,0.88)'
-      : 'rgba(20,10,26,0.88)'
+    ? 'rgba(253,248,245,0.92)'
     : 'transparent';
 
   const linkColor = (active: boolean) => {
     if (active) return 'text-pink-500';
-    if (isHome && scrolled) return 'text-gray-700 hover:text-gray-900';
-    return 'text-gray-300 hover:text-white';
+    if (!scrolled) return 'text-blue-700 hover:text-blue-900';
+    return 'text-gray-700 hover:text-gray-900';
   };
 
   const links = [
@@ -185,8 +189,8 @@ export default function Navbar() {
               <motion.img
                 src="/logo.png"
                 alt="Allsence"
-                whileHover={{ scale: 1.05 }}
-                style={{ height: 48, width: 'auto', objectFit: 'contain' }}
+                whileHover={{ scale: 1.09 }}
+                style={{ height: 58, width: 'auto', objectFit: 'contain' }}
               />
             </Link>
 
@@ -207,7 +211,7 @@ export default function Navbar() {
             <div className="hidden md:flex items-center gap-3">
 
               {/* Cart icon */}
-              <Link to="/cart" className={`relative p-2 transition-colors ${isHome && scrolled ? 'text-gray-600 hover:text-gray-900' : 'text-gray-300 hover:text-white'}`}>
+              <Link to="/cart" className={`relative p-2 transition-colors ${scrolled ? 'text-gray-600 hover:text-gray-900' : 'text-blue-700 hover:text-blue-900'}`}>
                 <FiShoppingCart size={20} />
                 <AnimatePresence>
                   {totalItems > 0 && (
@@ -226,7 +230,8 @@ export default function Navbar() {
                 <div className="relative">
                   <button
                     onClick={() => setDropOpen(!dropOpen)}
-                    className="flex items-center gap-2 glass-card px-3 py-2 rounded-full text-sm font-semibold text-white hover:border-pink-500/50 transition-all"
+                    className="flex items-center gap-2 glass-card px-3 py-2 rounded-full text-sm font-semibold hover:border-pink-500/50 transition-all"
+                    style={{ color: '#1d4ed8' }}
                   >
                     <div className="w-7 h-7 rounded-full bg-gradient-to-l from-pink-600 to-pink-400 flex items-center justify-center text-xs font-bold">
                       {user.name.charAt(0)}
@@ -240,13 +245,15 @@ export default function Navbar() {
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
-                        className="absolute left-0 top-12 w-52 glass-card rounded-2xl py-2 shadow-2xl"
+                        className="absolute left-0 top-12 w-52 rounded-2xl py-2 shadow-xl"
+                        style={{ background: '#fff', border: '1px solid rgba(196,113,139,0.18)' }}
                       >
                         {user.role === 'member' && (
                           <Link
                             to="/dashboard"
                             onClick={() => setDropOpen(false)}
-                            className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
+                            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold hover:bg-pink-50 transition-colors"
+                            style={{ color: '#2c1a2e' }}
                           >
                             <FiGrid className="text-pink-400" />
                             لوحة التحكم
@@ -256,7 +263,8 @@ export default function Navbar() {
                           <Link
                             to="/admin"
                             onClick={() => setDropOpen(false)}
-                            className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
+                            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold hover:bg-pink-50 transition-colors"
+                            style={{ color: '#2c1a2e' }}
                           >
                             <FiGrid className="text-pink-400" />
                             لوحة الإدارة
@@ -265,7 +273,8 @@ export default function Navbar() {
                         <Link
                           to="/products"
                           onClick={() => setDropOpen(false)}
-                          className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
+                          className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold hover:bg-pink-50 transition-colors"
+                          style={{ color: '#2c1a2e' }}
                         >
                           <FiShoppingBag className="text-pink-400" />
                           تسوق الآن
@@ -274,24 +283,26 @@ export default function Navbar() {
                           <Link
                             to="/orders"
                             onClick={() => setDropOpen(false)}
-                            className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
+                            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold hover:bg-pink-50 transition-colors"
+                            style={{ color: '#2c1a2e' }}
                           >
                             <FiPackage className="text-pink-400" />
                             طلباتي
                           </Link>
                         )}
-                        <hr className="border-white/10 my-1" />
+                        <hr style={{ borderColor: 'rgba(196,113,139,0.15)', margin: '4px 0' }} />
                         <button
                           onClick={() => { setDropOpen(false); setPwModalOpen(true); }}
-                          className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
+                          className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold hover:bg-pink-50 transition-colors"
+                          style={{ color: '#2c1a2e' }}
                         >
                           <FiLock className="text-pink-400" />
                           تغيير كلمة المرور
                         </button>
-                        <hr className="border-white/10 my-1" />
+                        <hr style={{ borderColor: 'rgba(196,113,139,0.15)', margin: '4px 0' }} />
                         <button
                           onClick={() => { setDropOpen(false); handleLogout(); }}
-                          className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors"
+                          className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold hover:bg-red-50 transition-colors text-red-500"
                         >
                           <FiLogOut />
                           تسجيل الخروج
@@ -302,7 +313,7 @@ export default function Navbar() {
                 </div>
               ) : (
                 <>
-                  <Link to="/login" className={`text-sm font-semibold transition-colors ${isHome && scrolled ? 'text-gray-700 hover:text-gray-900' : 'text-gray-300 hover:text-white'}`}>
+                  <Link to="/login" className={`text-sm font-semibold transition-colors ${scrolled ? 'text-gray-700 hover:text-gray-900' : 'text-blue-700 hover:text-blue-900'}`}>
                     تسجيل الدخول
                   </Link>
                   <Link to="/register" className="btn-primary text-sm py-2 px-5">
@@ -337,14 +348,14 @@ export default function Navbar() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden bg-black/95 backdrop-blur-xl border-t border-white/10"
+              className="md:hidden bg-white/95 backdrop-blur-xl border-t border-pink-100"
             >
               <div className="px-4 py-4 space-y-1">
                 {links.map((l) => (
                   <Link
                     key={l.to}
                     to={l.to}
-                    className="block px-4 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 font-semibold transition-all"
+                    className={`block px-4 py-3 rounded-xl font-semibold transition-all hover:bg-pink-50 ${location.pathname === l.to ? 'text-pink-500' : 'text-blue-700'}`}
                   >
                     {l.label}
                   </Link>

@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import ReminderBanner from './components/ReminderBanner';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -52,6 +53,7 @@ function AppRoutes() {
   return (
     <div className="min-h-screen bg-gradient-allsence flex flex-col">
       <Navbar />
+      <ReminderBanner />
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<Home />} />

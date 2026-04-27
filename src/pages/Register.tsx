@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { authAPI } from '../services/api';
-import { FiEye, FiEyeOff, FiCheck, FiUser, FiUsers } from 'react-icons/fi';
+import { FiEye, FiEyeOff, FiCheck, FiUser, FiUsers, FiBell } from 'react-icons/fi';
 import CountrySelect from '../components/CountrySelect';
 
 type Role = 'customer' | 'member';
@@ -34,6 +34,9 @@ export default function Register() {
     password: '',
     confirmPassword: '',
     sponsorCode: urlRef || '',
+    ageGroup: '',
+    reminderEnabled: false,
+    lastPeriodDate: '',
   });
 
   // Auto-check referral code from URL
@@ -80,6 +83,9 @@ export default function Register() {
         sponsorCode: form.sponsorCode || undefined,
         country: form.country || undefined,
         city: form.city || undefined,
+        ageGroup: form.ageGroup || undefined,
+        reminderEnabled: form.reminderEnabled,
+        lastPeriodDate: (form.reminderEnabled && form.lastPeriodDate) ? form.lastPeriodDate : undefined,
       });
       if (role === 'member') {
         sessionStorage.setItem('allsence_welcome', 'true');
@@ -97,7 +103,7 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen pt-16 flex items-center justify-center px-4 py-10 relative overflow-hidden">
+    <div className="light-page min-h-screen pt-16 flex items-center justify-center px-4 py-10 relative overflow-hidden" style={{ background: '#fdf8f5', color: '#2c1a2e' }}>
       <div className="absolute top-1/3 right-1/4 w-80 h-80 bg-pink-600/15 rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute bottom-1/3 left-1/4 w-80 h-80 bg-purple-600/10 rounded-full blur-[100px] pointer-events-none" />
 
@@ -271,6 +277,100 @@ export default function Register() {
                       required
                       dir="ltr"
                     />
+                  </div>
+
+                  {/* Age group */}
+                  <div>
+                    <label className="block text-sm text-gray-300 mb-2">الفئة العمرية</label>
+                    <div className="grid grid-cols-5 gap-2">
+                      {['15-20', '21-30', '31-40', '41-50', '51+'].map((ag) => (
+                        <button
+                          key={ag}
+                          type="button"
+                          onClick={() => setForm({ ...form, ageGroup: ag })}
+                          className={`py-2 rounded-xl text-sm font-bold transition-all border ${
+                            form.ageGroup === ag
+                              ? 'bg-pink-600 border-pink-500 text-white'
+                              : 'border-white/10 text-gray-400 hover:border-pink-500/40 hover:text-white'
+                          }`}
+                        >
+                          {ag}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Reminder toggle */}
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, reminderEnabled: !form.reminderEnabled, lastPeriodDate: '' })}
+                      className={`w-full flex items-center justify-between gap-3 transition-colors ${form.reminderEnabled ? 'text-pink-400' : 'text-gray-400'}`}
+                    >
+                      <span className="flex items-center gap-2 text-sm font-semibold">
+                        <FiBell size={15} />
+                        هل تريدين تذكيرك بموعد شراء الفوط؟
+                      </span>
+                      <div className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${form.reminderEnabled ? 'bg-pink-500' : 'bg-white/20'}`}>
+                        <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${form.reminderEnabled ? 'left-5' : 'left-0.5'}`} />
+                      </div>
+                    </button>
+
+                    <AnimatePresence>
+                      {form.reminderEnabled && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <label className="block text-xs text-gray-400 mb-1.5">
+                            متى انتهت آخر دورة شهرية لك؟
+                          </label>
+                          <div className="flex gap-2" dir="ltr">
+                            <select
+                              value={form.lastPeriodDate.split('-')[0] || ''}
+                              onChange={(e) => {
+                                const month = e.target.value;
+                                const day = form.lastPeriodDate.split('-')[1] || '';
+                                setForm({ ...form, lastPeriodDate: month && day ? `${month}-${day}` : '' });
+                              }}
+                              className="flex-1 rounded-xl px-3 py-2.5 text-sm outline-none transition-all"
+                              style={{ background: '#f5eef2', border: '1px solid rgba(196,113,139,0.3)', color: '#2c1a2e' }}
+                              required={form.reminderEnabled}
+                            >
+                              <option value="">الشهر</option>
+                              {[
+                                ['01','يناير'],['02','فبراير'],['03','مارس'],['04','أبريل'],
+                                ['05','مايو'],['06','يونيو'],['07','يوليو'],['08','أغسطس'],
+                                ['09','سبتمبر'],['10','أكتوبر'],['11','نوفمبر'],['12','ديسمبر'],
+                              ].map(([v, l]) => (
+                                <option key={v} value={v}>{l}</option>
+                              ))}
+                            </select>
+                            <select
+                              value={form.lastPeriodDate.split('-')[1] || ''}
+                              onChange={(e) => {
+                                const day = e.target.value;
+                                const month = form.lastPeriodDate.split('-')[0] || '';
+                                setForm({ ...form, lastPeriodDate: month && day ? `${month}-${day}` : '' });
+                              }}
+                              className="w-24 rounded-xl px-3 py-2.5 text-sm outline-none transition-all"
+                              style={{ background: '#f5eef2', border: '1px solid rgba(196,113,139,0.3)', color: '#2c1a2e' }}
+                              required={form.reminderEnabled}
+                            >
+                              <option value="">اليوم</option>
+                              {Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0')).map((d) => (
+                                <option key={d} value={d}>{d}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1.5">
+                            سنرسل لك تذكيراً كل 28 يوم 🔔
+                          </p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
 
                   {role === 'member' && (
