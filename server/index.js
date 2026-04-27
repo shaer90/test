@@ -19,7 +19,6 @@ app.use('/api/orders',        require('./routes/orders'));
 app.use('/api/network',       require('./routes/network'));
 app.use('/api/admin',         require('./routes/admin'));
 app.use('/api/verifications', require('./routes/verifications'));
-app.use('/api/payment-requests', require('./routes/payment-requests'));
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 

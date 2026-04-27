@@ -21,9 +21,7 @@ router.post('/', authMiddleware, (req, res) => {
     const userId = req.user.userId;
 
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
-    if (!user || !['member', 'admin', 'super_admin'].includes(user.role)) {
-      return res.status(403).json({ message: 'غير مصرح' });
-    }
+    if (!user) return res.status(401).json({ message: 'غير مصرح' });
 
     // Check if active (has order in last 30 days)
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();

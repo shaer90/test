@@ -128,8 +128,8 @@ export default function ProductDetail() {
 
             {/* Badge + name */}
             <div>
-              <span className="inline-block text-xs font-bold px-3 py-1 rounded-full text-white mb-3"
-                style={{ backgroundColor: product.color }}>
+              <span className="inline-block text-xs font-bold px-3 py-1 rounded-full mb-3"
+                style={{ backgroundColor: product.color, color: '#fff' }}>
                 {product.badge}
               </span>
               <div className="text-xs text-gray-400 uppercase tracking-widest mb-1">allsence</div>
@@ -183,8 +183,8 @@ export default function ProductDetail() {
               <motion.button
                 whileTap={{ scale: 0.95 }} whileHover={{ scale: 1.03 }}
                 onClick={handleAdd}
-                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-white text-base transition-all"
-                style={{ backgroundColor: product.color, boxShadow: `0 8px 30px ${product.color}55` }}
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-base transition-all"
+                style={{ backgroundColor: product.color, boxShadow: `0 8px 30px ${product.color}55`, color: '#fff' }}
               >
                 <AnimatePresence mode="wait">
                   {added ? (

@@ -60,7 +60,7 @@ const STATUS_MAP: Record<string, { label: string; color: string }> = {
 
 const LEVEL_COLORS = ['text-pink-400', 'text-purple-400', 'text-blue-400', 'text-teal-400', 'text-orange-400'];
 
-type TabKey = 'stats' | 'products' | 'verifications' | 'members' | 'orders' | 'commissions';
+type TabKey = 'stats' | 'products' | 'verifications' | 'members' | 'orders' | 'commissions' | 'payment-requests';
 
 // ── Derive dark bg gradient from a primary color ─────────────────────────────
 function colorToBg(hex: string): [string, string] {
@@ -1003,48 +1003,16 @@ export default function AdminDashboard() {
           <p className="text-gray-400 mt-1">إدارة المنتجات والأعضاء والعمولات</p>
         </motion.div>
 
-        {/* Payment request notifications */}
-        {paymentRequests.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="glass-card rounded-2xl p-4 mb-5 border border-yellow-500/30"
-          >
-            <div className="flex items-center gap-3 mb-3">
-              <FiBell size={16} className="text-yellow-400 flex-shrink-0" />
-              <span className="text-sm font-bold text-white">طلبات دفع معلقة ({paymentRequests.length})</span>
-            </div>
-            <div className="divide-y divide-white/5">
-              {paymentRequests.map((pr) => (
-                <div key={pr.id} className="flex items-center justify-between py-2.5 gap-3 flex-wrap">
-                  <div>
-                    <div className="text-sm font-semibold text-white">{pr.userName}</div>
-                    <div className="text-xs text-gray-500 font-mono">{pr.userCode || '—'} · {new Date(pr.requestedAt).toLocaleDateString('ar-EG')}</div>
-                  </div>
-                  <button
-                    onClick={async () => {
-                      await adminAPI.markPaymentRequestSeen(pr.id);
-                      setPaymentRequests((prev) => prev.filter((r) => r.id !== pr.id));
-                    }}
-                    className="text-xs bg-yellow-400/10 text-yellow-400 border border-yellow-400/20 px-3 py-1.5 rounded-xl hover:bg-yellow-400/20 transition-colors font-semibold"
-                  >
-                    تم الاطلاع ✓
-                  </button>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
         {/* Tabs */}
         <div className="flex flex-wrap gap-2 mb-6">
           {([
-            { key: 'stats', label: 'الإحصائيات', icon: FiTrendingUp },
-            { key: 'products', label: 'المنتجات', icon: FiPackage },
-            { key: 'verifications', label: 'التوثيقات', icon: FiShield },
-            { key: 'members', label: 'الأعضاء', icon: FiUsers },
-            { key: 'orders', label: 'الطلبات', icon: FiShoppingBag },
-            { key: 'commissions', label: 'العمولات', icon: FiSettings },
+            { key: 'stats',            label: 'الإحصائيات',   icon: FiTrendingUp },
+            { key: 'products',         label: 'المنتجات',     icon: FiPackage },
+            { key: 'verifications',    label: 'التوثيقات',    icon: FiShield },
+            { key: 'members',          label: 'الأعضاء',      icon: FiUsers },
+            { key: 'orders',           label: 'الطلبات',      icon: FiShoppingBag },
+            { key: 'commissions',      label: 'العمولات',     icon: FiSettings },
+            { key: 'payment-requests', label: 'طلبات الدفع',  icon: FiBell },
           ] as { key: TabKey; label: string; icon: React.ComponentType<{ size?: number }> }[]).map((t) => (
             <button
               key={t.key}
@@ -1060,6 +1028,11 @@ export default function AdminDashboard() {
               {t.key === 'verifications' && verifications.filter((v) => v.status === 'pending').length > 0 && (
                 <span className="w-4 h-4 rounded-full bg-yellow-400 text-black text-xs font-bold flex items-center justify-center">
                   {verifications.filter((v) => v.status === 'pending').length}
+                </span>
+              )}
+              {t.key === 'payment-requests' && paymentRequests.length > 0 && (
+                <span className="w-4 h-4 rounded-full bg-orange-400 text-black text-xs font-bold flex items-center justify-center">
+                  {paymentRequests.length}
                 </span>
               )}
             </button>
@@ -1315,21 +1288,23 @@ export default function AdminDashboard() {
                     {members.filter((m) => m.role === 'member' || m.role === 'customer').length} شخص
                   </span>
                 </div>
-                <div className="flex gap-2 flex-wrap">
-                  <div className="relative flex-1 min-w-[180px]">
-                    <FiSearch size={13} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                <div className="flex gap-2 items-center">
+                  <div className="relative flex-1">
+                    <FiSearch size={14} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: '#c4718b' }} />
                     <input
                       type="text"
                       value={memberSearch}
                       onChange={(e) => setMemberSearch(e.target.value)}
                       placeholder="بحث بالاسم أو اليوزر أو الكود..."
-                      className="input-field w-full pr-8 py-2 text-sm"
+                      className="w-full rounded-xl pr-9 px-4 py-2.5 text-sm outline-none transition-all"
+                      style={{ background: '#fff', border: '1.5px solid rgba(196,113,139,0.3)', color: '#2c1a2e' }}
                     />
                   </div>
                   <select
                     value={memberActiveFilter}
                     onChange={(e) => setMemberActiveFilter(e.target.value as 'all' | 'active' | 'inactive')}
-                    className="input-field py-2 text-sm"
+                    className="rounded-xl px-3 py-2.5 text-sm outline-none flex-shrink-0"
+                    style={{ background: '#fff', border: '1.5px solid rgba(196,113,139,0.3)', color: '#2c1a2e', width: '120px' }}
                   >
                     <option value="all">الكل</option>
                     <option value="active">نشط فقط</option>
@@ -1451,10 +1426,11 @@ export default function AdminDashboard() {
                       <select
                         value={o.status}
                         onChange={(e) => updateOrderStatus(o._id, e.target.value)}
-                        className="text-xs bg-white/5 border border-white/10 text-white rounded-lg px-3 py-1.5 focus:outline-none focus:border-pink-500"
+                        className="text-xs rounded-lg px-3 py-1.5 focus:outline-none"
+                        style={{ background: '#f5eef2', border: '1px solid rgba(196,113,139,0.3)', color: '#2c1a2e' }}
                       >
                         {Object.entries(STATUS_MAP).map(([k, v]) => (
-                          <option key={k} value={k} className="bg-gray-900">{v.label}</option>
+                          <option key={k} value={k} style={{ background: '#fff', color: '#2c1a2e' }}>{v.label}</option>
                         ))}
                       </select>
                     </div>
@@ -1542,6 +1518,69 @@ export default function AdminDashboard() {
               </div>
             </Link>
 
+          </motion.div>
+        )}
+
+        {/* ── Payment Requests ───────────────────────────────────────────────── */}
+        {activeTab === 'payment-requests' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <div className="glass-card rounded-3xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FiBell size={16} className="text-orange-400" />
+                  <h2 className="font-bold text-white">طلبات الدفع من الأعضاء</h2>
+                </div>
+                <span className="text-sm text-gray-400">{paymentRequests.length} طلب معلق</span>
+              </div>
+              {paymentRequests.length === 0 ? (
+                <div className="p-12 text-center">
+                  <FiBell size={32} className="text-gray-600 mx-auto mb-3" />
+                  <p className="text-gray-500">لا توجد طلبات دفع معلقة</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-white/5">
+                  {paymentRequests.map((pr) => {
+                    const member = members.find((m) => m._id === pr.userId);
+                    return (
+                      <div key={pr.id} className="px-5 py-4 flex items-center gap-4 flex-wrap">
+                        <div className="w-10 h-10 rounded-2xl bg-orange-400/10 border border-orange-400/20 flex items-center justify-center text-orange-400 flex-shrink-0">
+                          <FiDollarSign size={16} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-semibold text-white">{pr.userName}</div>
+                          <div className="text-xs text-gray-500 mt-0.5 font-mono">
+                            {pr.userCode || '—'} · {new Date(pr.requestedAt).toLocaleDateString('ar-EG')}
+                          </div>
+                        </div>
+                        {member && (
+                          <div className="text-right flex-shrink-0">
+                            <div className="text-xs text-gray-500">الرصيد المتاح</div>
+                            <div className="text-sm font-bold text-green-400">₪{(member.availableCommission || 0).toFixed(2)}</div>
+                          </div>
+                        )}
+                        <div className="flex gap-2 flex-shrink-0">
+                          <Link
+                            to="/admin/pay"
+                            className="text-xs bg-pink-500/10 text-pink-400 border border-pink-500/20 px-3 py-1.5 rounded-xl hover:bg-pink-500/20 transition-colors font-semibold"
+                          >
+                            دفع الآن
+                          </Link>
+                          <button
+                            onClick={async () => {
+                              await adminAPI.markPaymentRequestSeen(pr.id);
+                              setPaymentRequests((prev) => prev.filter((r) => r.id !== pr.id));
+                            }}
+                            className="text-xs bg-white/5 text-gray-400 border border-white/10 px-3 py-1.5 rounded-xl hover:bg-white/10 transition-colors font-semibold"
+                          >
+                            تم الاطلاع ✓
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </motion.div>
         )}
 

@@ -158,7 +158,7 @@ export const adminAPI = {
 
 // ── Payment Requests (member) ─────────────────────────────────────────────────
 export const paymentRequestAPI = {
-  create: () => api.post('/payment-requests'),
+  create: () => api.post('/orders/payment-request'),
 };
 
 // ── Verifications ─────────────────────────────────────────────────────────────

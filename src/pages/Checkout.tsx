@@ -11,13 +11,23 @@ import {
 
 type Step = 1 | 2 | 3;
 
-const PAYMENT_METHODS = [
-  { id: 'cash', label: 'الدفع عند الاستلام', icon: '💵', desc: 'ادفعي نقداً عند وصول طلبك' },
-];
-
 export default function Checkout() {
   const { items, totalPrice, totalItems, clearCart } = useCart();
   const { user } = useAuth();
+
+  const availableCommission = user?.availableCommission || 0;
+  const PAYMENT_METHODS = [
+    { id: 'cash', label: 'الدفع عند الاستلام', icon: '💵', desc: 'ادفعي نقداً عند وصول طلبك', disabled: false },
+    {
+      id: 'commission',
+      label: 'من الرصيد المتاح',
+      icon: '💰',
+      desc: availableCommission >= totalPrice
+        ? `رصيدك: ₪${availableCommission.toFixed(2)} — كافٍ ✓`
+        : `رصيدك: ₪${availableCommission.toFixed(2)} — غير كافٍ`,
+      disabled: availableCommission < totalPrice,
+    },
+  ];
 
 
   const [step, setStep] = useState<Step>(1);
@@ -45,6 +55,10 @@ export default function Checkout() {
   const validateStep2 = () => {
     if (!form.city.trim()) { setError('يرجى إدخال المدينة'); return false; }
     if (!form.street.trim()) { setError('يرجى إدخال الشارع'); return false; }
+    if (form.paymentMethod === 'commission' && availableCommission < totalPrice) {
+      setError(`الرصيد غير كافٍ. رصيدك المتاح ₪${availableCommission.toFixed(2)} وقيمة الطلب ₪${totalPrice.toFixed(2)}`);
+      return false;
+    }
     return true;
   };
 
@@ -218,19 +232,22 @@ export default function Checkout() {
                       <div className="space-y-2">
                         {PAYMENT_METHODS.map((m) => (
                           <label key={m.id}
-                            className={`flex items-center gap-4 p-4 rounded-2xl border cursor-pointer transition-all ${
-                              form.paymentMethod === m.id
-                                ? 'border-pink-500/60 bg-pink-500/10'
-                                : 'border-white/10 hover:border-white/20'
+                            className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${
+                              m.disabled
+                                ? 'border-white/5 opacity-50 cursor-not-allowed'
+                                : form.paymentMethod === m.id
+                                  ? 'border-pink-500/60 bg-pink-500/10 cursor-pointer'
+                                  : 'border-white/10 hover:border-white/20 cursor-pointer'
                             }`}>
                             <input type="radio" name="payment" value={m.id}
                               checked={form.paymentMethod === m.id}
-                              onChange={() => update('paymentMethod', m.id)}
+                              disabled={m.disabled}
+                              onChange={() => !m.disabled && update('paymentMethod', m.id)}
                               className="accent-pink-500" />
                             <span className="text-2xl">{m.icon}</span>
                             <div>
                               <div className="text-white font-semibold text-sm">{m.label}</div>
-                              <div className="text-gray-400 text-xs">{m.desc}</div>
+                              <div className={`text-xs ${m.id === 'commission' && !m.disabled ? 'text-green-400' : m.id === 'commission' ? 'text-red-400' : 'text-gray-400'}`}>{m.desc}</div>
                             </div>
                           </label>
                         ))}
